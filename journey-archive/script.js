@@ -18,6 +18,20 @@ const events = [
   ["NOW", "EXAM MODE", "正在备战 2027 考研，同时持续积累机器人与 AI 开发实践。", ["27 考研", "长期主义"]],
 ];
 
+// Character-level phosphor accents. Indices include spaces and punctuation so
+// the selected cells stay attached to the same glyph throughout every morph.
+const titleAccentIndices = new Map([
+  ["HHU", [0, 1, 2]],
+  ["HELLO, C", [7]],
+  ["EASYX GAME", [4]],
+  ["ZZLAB", [3]],
+  ["GIT INIT", [1]],
+  ["AI NATIVE", [0, 1]],
+  ["SIM2REAL", [3]],
+  ["LINUX DO", [6, 7]],
+  ["JINZHI", [3]],
+]);
+
 const list = document.querySelector("#index-list");
 const minimap = document.querySelector("#minimap");
 const progressTrack = document.querySelector("#progress-track");
@@ -129,14 +143,22 @@ class PixelTitle {
     this.draw(this.points);
   }
 
-  build(text) {
-    const cacheKey = `${text}|${Math.round(this.width)}|${Math.round(this.height)}`;
+  cacheKey(text, accentText = text) {
+    return `${text}|${accentText}|${Math.round(this.width)}|${Math.round(this.height)}`;
+  }
+
+  build(text, accentText = text) {
+    const cacheKey = this.cacheKey(text, accentText);
     if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
     const result = DotFont.makeBlockPoints(
       text,
       { cols: 7, rows: 9, maxPitch: 5.4, singleLine: true, pixelSize: 3 },
       { width: this.width, height: this.height },
     );
+    const accentIndices = new Set(titleAccentIndices.get(accentText) || []);
+    result.points.forEach((point) => {
+      point.themeAccent = accentIndices.has(point.characterIndex);
+    });
     this.canvas.dataset.font = "7x9-block-display";
     this.canvas.dataset.scale = "double-stroke";
     this.canvas.dataset.lines = String(result.lines);
@@ -159,10 +181,11 @@ class PixelTitle {
     buckets.forEach((bucket) => { bucket.length = 0; });
   }
 
-  drawBuckets(points, accentOnly = false) {
+  drawBuckets(points, mode = "all") {
     this.resetBuckets(this.alphaBuckets);
     points.forEach((point) => {
-      if (accentOnly && !point.accent) return;
+      if (mode === "theme" && !point.themeAccent) return;
+      if (mode === "accent" && !point.accent && !point.themeAccent) return;
       const alpha = point.alpha === undefined ? 1 : point.alpha;
       const bucket = Math.max(0, Math.min(8, Math.round(alpha * 8)));
       if (bucket) this.alphaBuckets[bucket].push(point);
@@ -220,6 +243,9 @@ class PixelTitle {
     this.context.fillStyle = colors.ink;
     this.drawBuckets(points);
 
+    this.context.fillStyle = colors.accent;
+    this.drawBuckets(points, cinematic ? "accent" : "theme");
+
     if (!cinematic && !rapid && phase > .28 && phase < .72) {
       this.context.fillStyle = colors.accent;
       points.forEach((point, index) => {
@@ -230,7 +256,6 @@ class PixelTitle {
 
     if (cinematic) {
       this.context.fillStyle = colors.accent;
-      this.drawBuckets(points, true);
       this.drawTrails(points);
 
       if (Number.isFinite(this.scanY) && Number.isFinite(this.scanX)) {
@@ -407,6 +432,7 @@ class PixelTitle {
             y,
             size: point.size,
             shape: point.shape,
+            themeAccent: point.themeAccent,
             accent: progress > .12 && progress < .46 && index % 7 === 0,
             trails: progress > .12 && index % 6 === 0
               ? [{
@@ -433,6 +459,7 @@ class PixelTitle {
           ...position,
           size: route.target.size,
           shape: route.target.shape,
+          themeAccent: route.target.themeAccent,
           alpha,
           accent: emphasized,
           trails: (route.index % 8 === 0 || emphasized) && local > .08 && local < .96
@@ -453,6 +480,7 @@ class PixelTitle {
           ...position,
           size: point.size,
           shape: point.shape,
+          themeAccent: point.themeAccent,
           alpha: Math.round((1 - transferLocal) * 8) / 8,
           accent: index % 8 === 0 && transferLocal < .72,
           trails: index % 6 === 0 && transferLocal > .1 && transferLocal < .88
@@ -467,7 +495,7 @@ class PixelTitle {
   anchoredPrefixes(text, anchorX) {
     return Array.from({ length: text.length + 1 }, (_, length) => {
       if (!length) return [];
-      const points = this.build(text.slice(0, length));
+      const points = this.build(text.slice(0, length), text);
       const minX = Math.min(...points.map((point) => point.x));
       return points.map((point) => ({ ...point, x: point.x - minX + anchorX }));
     });
@@ -608,6 +636,7 @@ class PixelTitle {
               role: scatterLocal < .96 ? "old-residue" : "cloud",
               size: point.size,
               shape: point.shape,
+              themeAccent: point.themeAccent,
               accent: activeScan && index % 3 === 0,
               trails: activeScan && index % 5 === 0
                 ? [{ x: point.x, y: point.y, alpha: .26, scale: .7 }]
@@ -628,6 +657,7 @@ class PixelTitle {
             role: "fading-excess",
             size: point.size,
             shape: point.shape,
+            themeAccent: point.themeAccent,
             alpha: Math.round((1 - local) * 8) / 8,
             accent: index % 8 === 0 && local < .7,
             trails: index % 6 === 0 && local > .08 && local < .9
@@ -644,6 +674,7 @@ class PixelTitle {
             role: scatterLocal < .96 ? "old-residue" : "cloud",
             size: point.size,
             shape: point.shape,
+            themeAccent: point.themeAccent,
             accent: activeScan && index % 3 === 0,
             trails: activeScan && index % 5 === 0
               ? [{ x: point.x, y: point.y, alpha: .26, scale: .7 }]
@@ -665,6 +696,7 @@ class PixelTitle {
             role: local > .68 ? "formed-glyph" : "migrating-particle",
             size: route.target.size,
             shape: route.target.shape,
+            themeAccent: route.target.themeAccent,
             alpha,
             accent: emphasized,
             trails: (route.index % 8 === 0 || emphasized) && local > .06 && local < .96
@@ -708,7 +740,7 @@ class PixelTitle {
 
   prewarm(texts) {
     this.prewarmTexts = [...new Set(texts)];
-    const queue = this.prewarmTexts.filter((text) => !this.cache.has(`${text}|${Math.round(this.width)}|${Math.round(this.height)}`));
+    const queue = this.prewarmTexts.filter((text) => !this.cache.has(this.cacheKey(text)));
     const work = (deadline) => {
       let built = 0;
       while (queue.length && (deadline.timeRemaining() > 2 || (deadline.didTimeout && built < 2))) {
@@ -783,6 +815,7 @@ class PixelTitle {
           y,
           size,
           shape: point.shape,
+          themeAccent: point.themeAccent,
           accent: local > 0 && local < .86,
           trailX: local > .08 && local < .9 && point.particleIndex % 4 === 0 ? x - direction * 6 : undefined,
           trailY: local > .08 && local < .9 && point.particleIndex % 4 === 0 ? y - curve * .32 : undefined,
@@ -809,6 +842,7 @@ class PixelTitle {
           y,
           size,
           shape: point.shape,
+          themeAccent: point.themeAccent,
           accent: local < .72,
           trailX: local > .06 && local < .78 && point.particleIndex % 4 === 0 ? x + direction * 5.5 : undefined,
           trailY: local > .06 && local < .78 && point.particleIndex % 4 === 0 ? y + curve * .3 : undefined,
@@ -845,6 +879,9 @@ class PixelTitle {
 
   set(text, immediate = false, transitionMode = "manual") {
     if (!this.width || !this.height) this.resize();
+    const accentIndices = titleAccentIndices.get(text) || [];
+    this.canvas.dataset.accentIndices = accentIndices.join(",");
+    this.canvas.dataset.accentGlyphs = accentIndices.map((index) => text[index]).join("");
     if (!this.width || !this.height || (text === this.text && this.points.length)) return;
     const setAt = performance.now();
     const cinematic = transitionMode === "auto";
@@ -936,6 +973,7 @@ class PixelTitle {
           trailY: cinematic ? y - Math.sin(orbitAngle) * 2.2 : undefined,
           size: particle.target.size * (1 - dispersion * shrink + pulse),
           shape: particle.target.shape,
+          themeAccent: particle.target.themeAccent,
         };
       });
       this.draw(this.framePoints, progress, rapid, cinematic);

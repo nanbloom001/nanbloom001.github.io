@@ -218,6 +218,8 @@
               y: startY + (lineIndex * (rows + 4) + y) * layout.pitch,
               size: pixelSize,
               shape: "block",
+              character,
+              characterIndex,
             });
           }));
         }
