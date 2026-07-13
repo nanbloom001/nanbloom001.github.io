@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="楠的交互式人生档案：以复古像素动画记录学习、竞赛、机器人与 AI 开发历程。">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0c0d0d" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#edf4fb" media="(prefers-color-scheme: light)">
+  <meta property="og:title" content="Life Archive | nanbloom001">
+  <meta property="og:description" content="17 个时间节点组成的交互式像素人生档案。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://nanbloom001.github.io/journey-archive/">
+  <meta property="og:image" content="https://nanbloom001.github.io/journey-archive/preview-light.png">
+  <link rel="canonical" href="https://nanbloom001.github.io/journey-archive/">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230c0d0d'/%3E%3Crect x='4' y='4' width='3' height='3' fill='%23ff5a36'/%3E%3Crect x='9' y='4' width='3' height='3' fill='%23777b76'/%3E%3Crect x='4' y='9' width='3' height='3' fill='%23777b76'/%3E%3Crect x='9' y='9' width='3' height='3' fill='%23ff5a36'/%3E%3C/svg%3E">
+  <title>Life Archive | nanbloom001</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="../assets/dot-font.js"></script>
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <main class="archive">
+    <span class="calibration calibration-nw" aria-hidden="true"></span>
+    <span class="calibration calibration-ne" aria-hidden="true"></span>
+    <span class="calibration calibration-sw" aria-hidden="true"></span>
+    <span class="calibration calibration-se" aria-hidden="true"></span>
+
+    <header>
+      <span>NAN / PERSONAL ARCHIVE</span>
+      <span class="system-state"><i aria-hidden="true"></i><span id="counter">01 / 17</span></span>
+    </header>
+
+    <section class="layout">
+      <nav id="index-list" aria-label="时间节点索引"></nav>
+
+      <article id="memory-file" aria-live="polite">
+        <div class="meta-row">
+          <p class="eyebrow"><span id="file-index">FILE 001</span></p>
+        </div>
+
+        <div class="title-stage">
+          <h1 id="title" class="visually-hidden"></h1>
+          <canvas id="pixel-title" class="pixel-title" aria-hidden="true"></canvas>
+        </div>
+        <span class="title-rule" aria-hidden="true"></span>
+
+        <p id="description" class="description"></p>
+        <div class="date-readout" aria-label="当前档案日期">
+          <canvas id="pixel-date" class="pixel-date" aria-label="当前日期"></canvas>
+        </div>
+        <footer>
+          <div class="progress-meta">
+            <span>PREV</span>
+            <output id="progress-readout">01 / 17 · 5.88%</output>
+            <span>NEXT</span>
+          </div>
+          <div class="progress-track" id="progress-track">
+            <div
+              class="dot-progress"
+              id="dot-progress"
+              role="progressbar"
+              aria-label="人生档案进度"
+              aria-valuemin="1"
+              aria-valuemax="17"
+              aria-valuenow="1"
+            ></div>
+            <span class="progress-cursor" id="progress-cursor" aria-hidden="true"></span>
+          </div>
+        </footer>
+      </article>
+
+      <aside id="minimap" aria-hidden="true"></aside>
+    </section>
+  </main>
+</body>
+</html>

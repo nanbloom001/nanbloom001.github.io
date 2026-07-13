@@ -1,0 +1,13 @@
+.DS_Store
+
+# Local legacy portfolio and animation experiments are intentionally excluded
+# from the focused GitHub Pages release.
+/404.html
+/about.html
+/index.html
+/styles.css
+/work.html
+/assets/agent-training.png
+/journey/
+/journey-dial/
+/journey-lab/
