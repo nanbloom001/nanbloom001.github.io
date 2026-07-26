@@ -9,6 +9,10 @@
     return {
       ink: styles.getPropertyValue("--ink").trim(),
       accent: styles.getPropertyValue("--accent").trim(),
+      muted: styles.getPropertyValue("--muted").trim(),
+      panel: styles.getPropertyValue("--panel").trim(),
+      line: styles.getPropertyValue("--line").trim(),
+      ocean: styles.getPropertyValue("--earth-ocean").trim(),
     };
   }
 
@@ -490,6 +494,13 @@
       this.orbitText = (canvas.dataset.orbitText || "").toUpperCase();
       this.accentCrest = canvas.dataset.accentCrest === "true";
       this.spinOffset = 0;
+      this.continents = [
+        { lon: 0.4, lat: -0.1, rl: 0.5, rf: 0.55 },
+        { lon: 1.3, lat: 0.7, rl: 0.9, rf: 0.45 },
+        { lon: -1.7, lat: 0.6, rl: 0.6, rf: 0.5 },
+        { lon: -1.2, lat: -0.4, rl: 0.35, rf: 0.6 },
+        { lon: 2.4, lat: -0.5, rl: 0.35, rf: 0.3 },
+      ];
       this.craters = [
         { lon: 0.4, lat: 0.3, r: 0.3, depth: 0.5 },
         { lon: 1.9, lat: -0.35, r: 0.24, depth: 0.55 },
@@ -602,6 +613,30 @@
       return value;
     }
 
+    // The blue marble: same sphere lighting as the moon, but each cell is
+    // resolved to a material — ocean, land (continent blobs), or polar ice.
+    earthCell(nx, ny, rr, spin) {
+      if (rr > 1) return null;
+      const nz = Math.sqrt(1 - rr);
+      let b = Math.max(0, nx * 0.74 - ny * 0.56 + nz * 0.32) * (0.5 + 0.5 * nz);
+      const lat = Math.asin(Math.max(-1, Math.min(1, ny)));
+      let fill = "ocean";
+      if (Math.abs(lat) > 1.15) {
+        fill = "ink";
+        b *= 1.12;
+      } else {
+        const lon = Math.atan2(nx, nz) + spin;
+        for (const c of this.continents) {
+          let dl = lon - c.lon;
+          if (dl > Math.PI) dl -= 2 * Math.PI;
+          if (dl < -Math.PI) dl += 2 * Math.PI;
+          const da = lat - c.lat;
+          if ((dl * dl) / (c.rl * c.rl) + (da * da) / (c.rf * c.rf) < 1) { fill = "ink"; b *= 1.08; break; }
+        }
+      }
+      return { b, fill };
+    }
+
     render(time) {
       if (!this.stage) return;
       this.lastTime = time;
@@ -636,18 +671,27 @@
           const nx = (gx * this.cell) / this.radius;
           const ny = (gy * this.cell) / this.radius;
           const rr = nx * nx + ny * ny;
-          let brightness = this.brightnessAt(nx, ny, rr, time, craterDirs);
-          if (brightness <= 0) continue;
-          const crest = this.accentCrest && brightness > 0.95;
+          let brightness;
+          let fillKey;
+          if (this.shape === "earth") {
+            const info = this.earthCell(nx, ny, rr, spin);
+            if (!info) continue;
+            brightness = info.b;
+            fillKey = info.fill;
+          } else {
+            brightness = this.brightnessAt(nx, ny, rr, time, craterDirs);
+            if (brightness <= 0) continue;
+            fillKey = (this.accentCrest && brightness > 0.95) ? "accent" : "ink";
+          }
           brightness += (hash2(gx, gy) - 0.5) * 0.14;
           const threshold = (BAYER_4[(gy + limit) % 4][(gx + limit) % 4] + 0.5) / 16;
           let level = Math.floor(brightness * 3 + threshold);
           level = Math.max(0, Math.min(3, level));
           if (!level) continue;
-          const fill = crest ? colors.accent : colors.ink;
-          if (fill !== currentFill) {
-            context.fillStyle = fill;
-            currentFill = fill;
+          const colorVal = fillKey === "ocean" ? colors.ocean : fillKey === "accent" ? colors.accent : colors.ink;
+          if (colorVal !== currentFill) {
+            context.fillStyle = colorVal;
+            currentFill = colorVal;
           }
           context.globalAlpha = ALPHAS[level];
           context.fillRect(
@@ -1393,6 +1437,88 @@
     }, { passive: true });
   } else if (morphTarget) {
     morphTarget.style.opacity = "1";
+  }
+
+  // Earthrise + translunar arc: the blue marble rises in the opening sky
+  // and a pixel craft crawls along a dashed trajectory toward the moon.
+  // Both are scroll-linked but independent of the moon's docking animation.
+  const earthCanvas = document.querySelector(".opening-earth");
+  const arcCanvas = document.querySelector("#trajectory-arc");
+  if ((earthCanvas || arcCanvas) && !reducedMotion.matches) {
+    const openingEl = document.querySelector(".opening");
+    const arcCtx = arcCanvas ? arcCanvas.getContext("2d") : null;
+    let arcW = 0, arcH = 0;
+    const sizeArc = () => {
+      if (!arcCanvas) return;
+      const ratio = Math.min(devicePixelRatio || 1, 1.5);
+      arcW = innerWidth; arcH = innerHeight;
+      arcCanvas.width = Math.round(arcW * ratio);
+      arcCanvas.height = Math.round(arcH * ratio);
+      arcCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    };
+    sizeArc();
+    addEventListener("resize", sizeArc, { passive: true });
+    const bz = (t, a, b, c, d) => {
+      const mt = 1 - t;
+      return mt * mt * mt * a + 3 * mt * mt * t * b + 3 * mt * t * t * c + t * t * t * d;
+    };
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const oh = openingEl ? openingEl.offsetHeight : innerHeight;
+      const p = Math.min(1, Math.max(0, scrollY / Math.max(1, oh)));
+      if (earthCanvas) {
+        const opacity = p < 0.65 ? 1 : Math.max(0, 1 - (p - 0.65) / 0.3);
+        const y = -p * 16;
+        earthCanvas.style.opacity = opacity.toFixed(3);
+        earthCanvas.style.transform = `translateY(${y.toFixed(1)}px)`;
+      }
+      if (arcCanvas && arcCtx && p < 1.05) {
+        const c = palette();
+        const x0 = arcW * 0.9, y0 = arcH * 0.92;
+        const x3 = arcW * 0.34, y3 = arcH * 0.5;
+        const x1 = arcW * 0.98, y1 = arcH * 0.42;
+        const x2 = arcW * 0.6, y2 = arcH * 0.16;
+        arcCtx.clearRect(0, 0, arcW, arcH);
+        arcCtx.strokeStyle = c.muted;
+        arcCtx.globalAlpha = 0.5;
+        arcCtx.setLineDash([2, 7]);
+        arcCtx.lineWidth = 1;
+        arcCtx.beginPath();
+        arcCtx.moveTo(x0, y0);
+        arcCtx.bezierCurveTo(x1, y1, x2, y2, x3, y3);
+        arcCtx.stroke();
+        arcCtx.setLineDash([]);
+        const t = Math.min(1, p);
+        const cx = bz(t, x0, x1, x2, x3);
+        const cy = bz(t, y0, y1, y2, y3);
+        const tx = bz(t + 0.01, x0, x1, x2, x3);
+        const ty = bz(t + 0.01, y0, y1, y2, y3);
+        const ang = Math.atan2(ty - cy, tx - cx);
+        arcCtx.fillStyle = c.muted;
+        for (let i = 1; i <= 3; i += 1) {
+          const tt = Math.max(0, t - i * 0.018);
+          arcCtx.globalAlpha = 0.4 - i * 0.1;
+          arcCtx.fillRect((bz(tt, x0, x1, x2, x3) - 1) | 0, (bz(tt, y0, y1, y2, y3) - 1) | 0, 2, 2);
+        }
+        arcCtx.globalAlpha = 1;
+        arcCtx.save();
+        arcCtx.translate(cx | 0, cy | 0);
+        arcCtx.rotate(ang);
+        arcCtx.fillStyle = c.ink;
+        arcCtx.fillRect(-4, -1, 4, 2);
+        arcCtx.fillStyle = c.accent;
+        arcCtx.fillRect(0, -1, 4, 2);
+        arcCtx.fillRect(3, -2, 2, 4);
+        arcCtx.restore();
+      }
+    };
+    addEventListener("scroll", () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    }, { passive: true });
+    update();
   }
 
   if (parallaxLayers.length && !reducedMotion.matches) {

@@ -124,3 +124,6 @@ motion:
 根 `/` 是极简落地页(NAN 点阵 wordmark + 三通道:FIELD LOG / LIFE ARCHIVE / GITHUB);
 旧作品集移入 `legacy/`(gitignored 本地存档)。`404.html` 同风格 `SIGNAL LOST`。
 
+> **配套文档**:`../DITHER.md` 是这套「抖动磷光像素」渲染风格的**可移植独立规范**——
+> 讲风格本身的抽象、亮度函数库、迁移配方,换项目也能照着复现。本文件讲它在站点的具体应用。
+
