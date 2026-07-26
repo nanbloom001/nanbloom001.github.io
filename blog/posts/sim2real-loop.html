@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="四足机器人 Sim2Real 部署闭环记录：Sim2Sim 中转、ONNX 导出与上机检查清单。">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0c0d0d" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#edf4fb" media="(prefers-color-scheme: light)">
+  <meta property="og:title" content="Sim2Real Loop — 四足机器人 Sim2Real 部署闭环记录">
+  <meta property="og:description" content="把一条在 Isaac Lab 里训练的步态策略完整带到实机上：Sim2Sim 中转、ONNX 导出与上机检查清单。">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://nanbloom001.github.io/blog/posts/sim2real-loop.html">
+  <link rel="canonical" href="https://nanbloom001.github.io/blog/posts/sim2real-loop.html">
+  <script type="application/ld+json">
+  {"@context": "https://schema.org", "@type": "BlogPosting",
+   "headline": "Sim2Real Loop — 四足机器人 Sim2Real 部署闭环记录", "datePublished": "2026-07-18",
+   "author": {"@type": "Person", "name": "nanbloom001", "url": "https://github.com/nanbloom001"},
+   "url": "https://nanbloom001.github.io/blog/posts/sim2real-loop.html"}
+  </script>
+  <link rel="alternate" type="application/rss+xml" title="Field Log" href="https://nanbloom001.github.io/blog/feed.xml">
+  <noscript><style>.visually-hidden { position: static; width: auto; height: auto; margin: 0 0 12px; clip: auto; white-space: normal; font: 700 26px/1.3 ui-monospace, Menlo, monospace; } .banner-stage { display: none; }</style></noscript>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230c0d0d'/%3E%3Crect x='4' y='4' width='3' height='3' fill='%23ff5a36'/%3E%3Crect x='9' y='4' width='3' height='3' fill='%23777b76'/%3E%3Crect x='4' y='9' width='3' height='3' fill='%23777b76'/%3E%3Crect x='9' y='9' width='3' height='3' fill='%23ff5a36'/%3E%3C/svg%3E">
+  <title>Sim2Real Loop | Field Log</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script defer src="../../assets/dot-font.js"></script>
+  <script defer src="../blog.js"></script>
+</head>
+<body>
+  <div id="read-progress" role="progressbar" aria-label="阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+  <canvas id="drift-field" aria-hidden="true"></canvas>
+  <span class="calibration calibration-nw" aria-hidden="true"></span>
+  <span class="calibration calibration-ne" aria-hidden="true"></span>
+  <span class="calibration calibration-sw" aria-hidden="true"></span>
+  <span class="calibration calibration-se" aria-hidden="true"></span>
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <div class="frame">
+    <header class="log-header">
+      <a class="wordmark" href="../index.html">NAN / FIELD LOG<i aria-hidden="true"></i></a>
+      <nav aria-label="博客导航">
+        <a class="active" href="../index.html">LOG</a>
+        <a href="../about.html">ABOUT</a>
+        <a href="../../journey-archive/">ARCHIVE</a>
+        <a href="https://github.com/nanbloom001" target="_blank" rel="noreferrer">GITHUB</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article class="post">
+        <canvas class="post-emblem" data-planet data-shape="ring" data-orbit-text="SIM2SIM · SIM2REAL · " aria-hidden="true"></canvas>
+        <span class="sparkle" style="--x: 58%; --y: 14px; --d: 400ms" aria-hidden="true"></span>
+        <span class="sparkle accent" style="--x: 2%; --y: 240px; --d: 1200ms" aria-hidden="true"></span>
+        <p class="eyebrow">
+          <span>LOG 003</span>
+          <span class="eyebrow-separator">//</span>
+          <span class="dim">QUADRUPED / DEPLOYMENT</span>
+        </p>
+        <h1 class="visually-hidden">Sim2Real Loop — 四足机器人 Sim2Real 部署闭环记录</h1>
+        <div class="banner-stage post-banner">
+          <canvas data-pixel-banner data-text="SIM2REAL LOOP" data-accent="LOOP" data-pitch="9" aria-hidden="true"></canvas>
+        </div>
+        <span class="title-rule" aria-hidden="true"></span>
+        <p class="post-standfirst">
+          把一条在 Isaac Lab 里训练的四足步态策略，完整带到实机上跑起来。
+          这篇记录整个链路上真正花时间的地方——大部分都不在"训练"这一步。
+        </p>
+        <div class="post-meta">
+          <canvas class="pixel-date" data-pixel-date="2026.07.18" aria-label="发布于 2026 年 7 月 18 日"></canvas>
+          <span class="read-time">05 MIN READ</span>
+          <ul class="log-tags" aria-label="标签">
+            <li>ISAAC LAB</li><li>MUJOCO</li><li>SIM2REAL</li><li>ONNX</li>
+          </ul>
+        </div>
+
+        <div class="post-body">
+          <h2><span class="h-index">01</span>为什么先谈闭环，再谈指标</h2>
+          <p>
+            仿真里 reward 曲线再漂亮，只能说明策略适应了那个仿真。真正的验收标准是一条闭环：
+            训练 → 导出 → 中转验证 → 实机运行 → 数据回流。闭环走通一次之后，
+            后面每一次迭代都有了可靠的参照系；走不通，指标只是自我安慰。
+          </p>
+          <p>
+            所以这次我把目标定义成"让策略在真实设备上稳定站立并行走一分钟"，
+            而不是"训练到某个 reward 值"。目标变了，整个工作的重心自然就从调参转向了工程链路。
+          </p>
+
+          <h2><span class="h-index">02</span>Sim2Sim 是最便宜的保险</h2>
+          <p>
+            从 Isaac Lab 直接上实机的风险太高，中间加一层 MuJoCo 做 Sim2Sim 验证非常值得。
+            两个仿真器的物理引擎不同，能在这一步暴露的问题包括：观测向量的拼接顺序、
+            角度单位（弧度还是度）、默认关节角偏移、控制频率与动作缩放。
+          </p>
+          <p>
+            我的经验是：实机上的"翻车"，八成在 Sim2Sim 阶段就能提前复现。
+            MuJoCo 里走不好的策略，不要抱侥幸心理上真机。
+          </p>
+
+          <h2><span class="h-index">03</span>导出与实机侧的对齐</h2>
+          <p>
+            策略用 ONNX 导出，部署侧只依赖 onnxruntime，不需要拖着整个训练框架。
+            导出时最容易忽略的是观测归一化常数——它们必须与训练时完全一致，
+            我的做法是把它们和模型一起固化下来：
+          </p>
+          <pre><code># 观测归一化与动作缩放，随模型一起落盘
+obs_scales = {
+    "ang_vel":   0.25,
+    "gravity":   1.0,
+    "joint_pos": 1.0,
+    "joint_vel": 0.05,
+}
+action_scale = 0.25
+default_joint_pos = [0.1, 0.8, -1.5, ...]  # 与训练环境一致</code></pre>
+          <p>
+            实机侧按同样的顺序、同样的缩放拼观测。任何一项对不齐，
+            策略的输出都会看起来"像是坏了"，但其实模型没有任何问题。
+          </p>
+
+          <h2><span class="h-index">04</span>上机检查清单</h2>
+          <p>每次上机前过一遍，顺序执行，任何一项不通过就停下：</p>
+          <ul>
+            <li>急停开关在手边，且当天测试过；</li>
+            <li>先做零动作 dry-run：策略输出接死为默认关节角，确认通信链路与控制频率正常；</li>
+            <li>核对关节限位与扭矩上限，宁可保守；</li>
+            <li>机器人吊装或有人保护，第一次不允许直接放地上；</li>
+            <li>动作幅度从 30% 起步，逐步放开到 100%；</li>
+            <li>全程录制关节状态与策略输入输出日志。</li>
+          </ul>
+
+          <h2><span class="h-index">05</span>数据回流：闭环的最后一段</h2>
+          <p>
+            实机日志带回来之后做两件事：一是把真实观测序列喂回策略离线复算，
+            确认实机上的动作确实是模型算出来的（排除部署侧 bug）；
+            二是对比真实关节响应与仿真响应的差距，反过来修正仿真的执行器模型与域随机化范围。
+          </p>
+          <blockquote>
+            <p>闭环的意义在于：每一次失败都能定位到链路上的具体一环，而不是笼统地归咎于"Sim2Real gap"。</p>
+          </blockquote>
+          <p>
+            这条链路第一次走通花了很久，但之后每次迭代都快得多。
+            工程上的慢，往往是一次性的；绕过工程的快，每次都要重新付费。
+          </p>
+        </div>
+
+        <footer>
+          <div class="section-label"><span>ADJACENT LOGS</span><span>NAVIGATE</span></div>
+          <nav class="post-adjacent" aria-label="相邻日志">
+            <a class="adjacent prev" href="reward-shaping.html" data-shatter>
+              <span>&lt;- PREV / LOG 002</span>
+              <strong>REWARD SHAPING</strong>
+            </a>
+            <a class="adjacent next" href="../index.html" data-shatter>
+              <span>INDEX -&gt;</span>
+              <strong>ALL LOGS</strong>
+            </a>
+          </nav>
+        </footer>
+      </article>
+
+      <div class="ticker" aria-hidden="true">
+        <span class="ticker-track"><span>FIELD LOG&nbsp;//&nbsp;ROBOTICS&nbsp;//&nbsp;REINFORCEMENT LEARNING&nbsp;//&nbsp;SIM2REAL&nbsp;//&nbsp;AI NATIVE&nbsp;//&nbsp;KEEP BUILDING&nbsp;//&nbsp;</span><span>FIELD LOG&nbsp;//&nbsp;ROBOTICS&nbsp;//&nbsp;REINFORCEMENT LEARNING&nbsp;//&nbsp;SIM2REAL&nbsp;//&nbsp;AI NATIVE&nbsp;//&nbsp;KEEP BUILDING&nbsp;//&nbsp;</span></span>
+      </div>
+
+      <div class="telemetry" aria-hidden="true">
+        <span><i class="tele-square"></i>OPERATOR NAN &middot; ON DUTY</span>
+        <span><i class="tele-square"></i>ROVER DOG-01 &middot; ROVING</span>
+        <span><i class="tele-square"></i>RELAY SAT-02 &middot; IN ORBIT</span>
+        <span><i class="tele-square"></i>GROUND TWR-03 &middot; BEACON OK</span>
+        <span class="tele-link"><i class="tele-dot"></i>LINK STABLE</span>
+      </div>
+    </main>
+
+    <footer class="log-footer">
+      <p>NAN / FIELD LOG / 2026</p>
+      <p>
+        <a href="../../">MAIN SITE -&gt;</a>
+        <a href="../../journey-archive/">LIFE ARCHIVE -&gt;</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>

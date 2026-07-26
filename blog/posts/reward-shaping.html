@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="奖励函数设计笔记：奖励项的三种角色、reward hacking 与实验调参节奏。">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0c0d0d" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#edf4fb" media="(prefers-color-scheme: light)">
+  <meta property="og:title" content="Reward Shaping — 奖励函数设计笔记">
+  <meta property="og:description" content="奖励项的三种角色、reward hacking 的常见姿势与一次只动一个参数的调参纪律。">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://nanbloom001.github.io/blog/posts/reward-shaping.html">
+  <link rel="canonical" href="https://nanbloom001.github.io/blog/posts/reward-shaping.html">
+  <script type="application/ld+json">
+  {"@context": "https://schema.org", "@type": "BlogPosting",
+   "headline": "Reward Shaping — 奖励函数设计笔记", "datePublished": "2026-05-30",
+   "author": {"@type": "Person", "name": "nanbloom001", "url": "https://github.com/nanbloom001"},
+   "url": "https://nanbloom001.github.io/blog/posts/reward-shaping.html"}
+  </script>
+  <link rel="alternate" type="application/rss+xml" title="Field Log" href="https://nanbloom001.github.io/blog/feed.xml">
+  <noscript><style>.visually-hidden { position: static; width: auto; height: auto; margin: 0 0 12px; clip: auto; white-space: normal; font: 700 26px/1.3 ui-monospace, Menlo, monospace; } .banner-stage { display: none; }</style></noscript>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230c0d0d'/%3E%3Crect x='4' y='4' width='3' height='3' fill='%23ff5a36'/%3E%3Crect x='9' y='4' width='3' height='3' fill='%23777b76'/%3E%3Crect x='4' y='9' width='3' height='3' fill='%23777b76'/%3E%3Crect x='9' y='9' width='3' height='3' fill='%23ff5a36'/%3E%3C/svg%3E">
+  <title>Reward Shaping | Field Log</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script defer src="../../assets/dot-font.js"></script>
+  <script defer src="../blog.js"></script>
+</head>
+<body>
+  <div id="read-progress" role="progressbar" aria-label="阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+  <canvas id="drift-field" aria-hidden="true"></canvas>
+  <span class="calibration calibration-nw" aria-hidden="true"></span>
+  <span class="calibration calibration-ne" aria-hidden="true"></span>
+  <span class="calibration calibration-sw" aria-hidden="true"></span>
+  <span class="calibration calibration-se" aria-hidden="true"></span>
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <div class="frame">
+    <header class="log-header">
+      <a class="wordmark" href="../index.html">NAN / FIELD LOG<i aria-hidden="true"></i></a>
+      <nav aria-label="博客导航">
+        <a class="active" href="../index.html">LOG</a>
+        <a href="../about.html">ABOUT</a>
+        <a href="../../journey-archive/">ARCHIVE</a>
+        <a href="https://github.com/nanbloom001" target="_blank" rel="noreferrer">GITHUB</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article class="post">
+        <canvas class="post-emblem" data-planet data-shape="target" data-accent-crest="true" data-orbit-text="REWARD IS A MIRROR · " aria-hidden="true"></canvas>
+        <span class="sparkle" style="--x: 58%; --y: 14px; --d: 400ms" aria-hidden="true"></span>
+        <span class="sparkle accent" style="--x: 2%; --y: 240px; --d: 1200ms" aria-hidden="true"></span>
+        <p class="eyebrow">
+          <span>LOG 002</span>
+          <span class="eyebrow-separator">//</span>
+          <span class="dim">RL / METHOD</span>
+        </p>
+        <h1 class="visually-hidden">Reward Shaping — 奖励函数设计笔记</h1>
+        <div class="banner-stage post-banner">
+          <canvas data-pixel-banner data-text="REWARD SHAPING" data-accent="SHAPING" data-pitch="9" aria-hidden="true"></canvas>
+        </div>
+        <span class="title-rule" aria-hidden="true"></span>
+        <p class="post-standfirst">
+          奖励函数是把"想要的行为"翻译成"可测量的信号"的过程。
+          翻译得不好，策略会精确地优化你写下的东西——而不是你想要的东西。
+        </p>
+        <div class="post-meta">
+          <canvas class="pixel-date" data-pixel-date="2026.05.30" aria-label="发布于 2026 年 5 月 30 日"></canvas>
+          <span class="read-time">04 MIN READ</span>
+          <ul class="log-tags" aria-label="标签">
+            <li>强化学习</li><li>REWARD</li><li>实验方法</li>
+          </ul>
+        </div>
+
+        <div class="post-body">
+          <h2><span class="h-index">01</span>奖励项的三种角色</h2>
+          <p>我习惯把奖励项分成三类，每一项写下来之前先问自己它属于哪一类：</p>
+          <ul>
+            <li><strong>任务项（task）</strong>：定义"成功"本身，比如跟踪速度指令的误差。没有它任务不成立；</li>
+            <li><strong>风格项（style）</strong>：塑造"怎么完成"，比如步态对称性、抬脚高度。它们让行为看起来合理；</li>
+            <li><strong>正则项（regularization)</strong>：抑制不想要的副作用，比如动作变化率、关节扭矩、能耗惩罚。</li>
+          </ul>
+          <p>
+            分类的价值在于调试时的定位：行为不对，先查任务项；行为难看，动风格项；
+            动作抖、扭矩爆，调正则项。混在一起写，出了问题只能盲调。
+          </p>
+
+          <h2><span class="h-index">02</span>Reward hacking 的常见姿势</h2>
+          <p>
+            策略是最诚实的优化器，奖励里所有的空子它都会钻。我自己遇到过的几种：
+            为了刷 air-time 奖励原地快速抖腿；为了躲避碰撞惩罚干脆趴着不动；
+            速度跟踪项权重过低时，学会"看起来在走但原地打滑"。
+          </p>
+          <blockquote>
+            <p>看到一个诡异行为时，先别怀疑算法——把它当成一面镜子，照出奖励函数里真实写着的东西。</p>
+          </blockquote>
+          <p>
+            对付 hacking 最有效的不是加更多惩罚，而是让任务项本身更难被绕过：
+            比如用脚底接触序列约束步态，而不是单纯奖励 air-time。
+          </p>
+
+          <h2><span class="h-index">03</span>一次只动一个</h2>
+          <p>
+            奖励权重的调整我强制自己遵守两条纪律：一次实验只改一个权重；
+            每次改动前把预期写下来（"提高 X 应该让 Y 变化"）。
+            结果与预期不符时，这条记录比 tensorboard 曲线更有信息量。
+          </p>
+          <pre><code># 每组实验的奖励配置独立存档，可回溯
+rewards = {
+    "track_lin_vel":  1.0,    # task
+    "track_ang_vel":  0.5,    # task
+    "gait_symmetry":  0.3,    # style
+    "foot_clearance": 0.2,    # style
+    "action_rate":   -0.01,   # reg
+    "joint_torque":  -1e-4,   # reg
+}</code></pre>
+
+          <h2><span class="h-index">04</span>什么时候停手</h2>
+          <p>
+            判断标准只有一个：行为对了就停，不要继续追 reward 数值。
+            reward 是训练的手段，不是产品的指标。行为已经满足需求时，
+            多出来的那点 reward 提升往往来自过拟合仿真的细节——它们在 Sim2Real
+            的时候会变成负资产（这一点在 <a href="sim2real-loop.html">LOG 003</a> 里展开）。
+          </p>
+        </div>
+
+        <footer>
+          <div class="section-label"><span>ADJACENT LOGS</span><span>NAVIGATE</span></div>
+          <nav class="post-adjacent" aria-label="相邻日志">
+            <a class="adjacent prev" href="ai-native-dev.html" data-shatter>
+              <span>&lt;- PREV / LOG 001</span>
+              <strong>AI NATIVE DEV</strong>
+            </a>
+            <a class="adjacent next" href="sim2real-loop.html" data-shatter>
+              <span>NEXT / LOG 003 -&gt;</span>
+              <strong>SIM2REAL LOOP</strong>
+            </a>
+          </nav>
+        </footer>
+      </article>
+
+      <div class="ticker" aria-hidden="true">
+        <span class="ticker-track"><span>FIELD LOG&nbsp;//&nbsp;ROBOTICS&nbsp;//&nbsp;REINFORCEMENT LEARNING&nbsp;//&nbsp;SIM2REAL&nbsp;//&nbsp;AI NATIVE&nbsp;//&nbsp;KEEP BUILDING&nbsp;//&nbsp;</span><span>FIELD LOG&nbsp;//&nbsp;ROBOTICS&nbsp;//&nbsp;REINFORCEMENT LEARNING&nbsp;//&nbsp;SIM2REAL&nbsp;//&nbsp;AI NATIVE&nbsp;//&nbsp;KEEP BUILDING&nbsp;//&nbsp;</span></span>
+      </div>
+
+      <div class="telemetry" aria-hidden="true">
+        <span><i class="tele-square"></i>OPERATOR NAN &middot; ON DUTY</span>
+        <span><i class="tele-square"></i>ROVER DOG-01 &middot; ROVING</span>
+        <span><i class="tele-square"></i>RELAY SAT-02 &middot; IN ORBIT</span>
+        <span><i class="tele-square"></i>GROUND TWR-03 &middot; BEACON OK</span>
+        <span class="tele-link"><i class="tele-dot"></i>LINK STABLE</span>
+      </div>
+    </main>
+
+    <footer class="log-footer">
+      <p>NAN / FIELD LOG / 2026</p>
+      <p>
+        <a href="../../">MAIN SITE -&gt;</a>
+        <a href="../../journey-archive/">LIFE ARCHIVE -&gt;</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>

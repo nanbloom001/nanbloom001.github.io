@@ -152,7 +152,7 @@ class PixelTitle {
     if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
     const result = DotFont.makeBlockPoints(
       text,
-      { cols: 7, rows: 9, maxPitch: 5.4, singleLine: true, pixelSize: 3 },
+      { cols: 7, rows: 9, maxPitch: 6.4, singleLine: true, pixelSize: 4 },
       { width: this.width, height: this.height },
     );
     const accentIndices = new Set(titleAccentIndices.get(accentText) || []);
@@ -999,7 +999,7 @@ class PixelDate {
     this.animationFrame = 0;
     this.animating = false;
     this.ratio = 1;
-    this.slotWidth = 18;
+    this.slotWidth = 26;
     this.lastSetAt = 0;
     this.glyphCache = new Map();
     this.prewarmCharacters = [];
@@ -1054,7 +1054,7 @@ class PixelDate {
     if (this.glyphCache.has(character)) return this.glyphCache.get(character);
     const points = DotFont.makeCompactPoints(
       character,
-      { maxPitch: 3.35, pixelSize: 3 },
+      { maxPitch: 4.8, pixelSize: 5 },
       { width: this.slotWidth, height: this.height },
     ).points;
     this.glyphCache.set(character, points);

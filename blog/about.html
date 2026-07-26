@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="关于 Field Log 与它的作者楠：机器人软件、强化学习与 AI 原生开发。">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0c0d0d" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#edf4fb" media="(prefers-color-scheme: light)">
+  <meta property="og:title" content="About | Field Log">
+  <meta property="og:description" content="关于 Field Log 与它的作者楠：机器人软件、强化学习与 AI 原生开发。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://nanbloom001.github.io/blog/about.html">
+  <link rel="canonical" href="https://nanbloom001.github.io/blog/about.html">
+  <link rel="alternate" type="application/rss+xml" title="Field Log" href="https://nanbloom001.github.io/blog/feed.xml">
+  <noscript><style>.visually-hidden { position: static; width: auto; height: auto; margin: 0 0 12px; clip: auto; white-space: normal; font: 700 26px/1.3 ui-monospace, Menlo, monospace; } .banner-stage { display: none; }</style></noscript>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230c0d0d'/%3E%3Crect x='4' y='4' width='3' height='3' fill='%23ff5a36'/%3E%3Crect x='9' y='4' width='3' height='3' fill='%23777b76'/%3E%3Crect x='4' y='9' width='3' height='3' fill='%23777b76'/%3E%3Crect x='9' y='9' width='3' height='3' fill='%23ff5a36'/%3E%3C/svg%3E">
+  <title>About | Field Log</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="../assets/dot-font.js"></script>
+  <script defer src="blog.js"></script>
+</head>
+<body>
+  <canvas id="drift-field" aria-hidden="true"></canvas>
+  <span class="calibration calibration-nw" aria-hidden="true"></span>
+  <span class="calibration calibration-ne" aria-hidden="true"></span>
+  <span class="calibration calibration-sw" aria-hidden="true"></span>
+  <span class="calibration calibration-se" aria-hidden="true"></span>
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <div class="frame">
+    <header class="log-header">
+      <a class="wordmark" href="index.html">NAN / FIELD LOG<i aria-hidden="true"></i></a>
+      <nav aria-label="博客导航">
+        <a href="index.html">LOG</a>
+        <a class="active" href="about.html">ABOUT</a>
+        <a href="../journey-archive/">ARCHIVE</a>
+        <a href="https://github.com/nanbloom001" target="_blank" rel="noreferrer">GITHUB</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article class="post">
+        <canvas class="post-emblem" data-planet data-shape="sphere" data-orbit-text="ROBOTICS × RL × AI · " aria-hidden="true"></canvas>
+        <span class="sparkle" style="--x: 12%; --y: 12%; --d: 500ms" aria-hidden="true"></span>
+        <span class="sparkle accent" style="--x: 90%; --y: 26%; --d: 1400ms" aria-hidden="true"></span>
+        <p class="eyebrow">
+          <span>PROFILE</span>
+          <span class="eyebrow-separator">//</span>
+          <span class="dim">NAN / OPERATOR</span>
+        </p>
+        <h1 class="visually-hidden">关于 Field Log 与它的作者</h1>
+        <div class="banner-stage post-banner">
+          <canvas data-pixel-banner data-text="ABOUT" data-pitch="11" aria-hidden="true"></canvas>
+        </div>
+        <span class="title-rule" aria-hidden="true"></span>
+
+        <div class="operator-card">
+          <canvas data-sprite="face" aria-hidden="true"></canvas>
+          <div class="operator-lines" role="presentation">
+            <span>UNIT / <strong>NAN</strong></span>
+            <span>FOCUS / <strong>ROBOTICS × RL</strong></span>
+            <span>MODE / <strong>BUILD &amp; VERIFY</strong></span>
+          </div>
+        </div>
+
+        <div class="about-body">
+          <p>
+            我是楠（<a href="https://github.com/nanbloom001" target="_blank" rel="noreferrer">@nanbloom001</a>），
+            河海大学智能科学与技术专业在读，方向是机器人软件与强化学习。
+            我关心的问题始终是同一个：算法怎样才能从仿真环境走到真实设备上，
+            并且稳定、可验证地运行。
+          </p>
+          <p>
+            这个博客叫 Field Log——实地日志。取这个名字是因为我相信，
+            有价值的经验大多产生在"实地"：策略第一次上真机的那个下午、
+            奖励函数被策略钻空子的那次实验、AI 生成的代码在边界条件上翻车的那一刻。
+            这些内容论文里不写，教程里没有，只能自己记。
+          </p>
+          <p>
+            日志会持续更新，主题围绕强化学习、四足机器人、Sim2Real，
+            以及 AI 原生的开发方式。更完整的经历在
+            <a href="../journey-archive/">人生档案</a>里，
+            项目代码都在 <a href="https://github.com/nanbloom001" target="_blank" rel="noreferrer">GitHub</a>。
+            技术交流欢迎写信：<a href="mailto:nanbloom001@gmail.com">nanbloom001@gmail.com</a>。
+          </p>
+
+          <h2><span class="h-index">SPEC</span>这个站点本身</h2>
+          <p>
+            整站零依赖：没有框架、没有构建工具、没有第三方请求。
+            点阵标题由自研的 7×9 方块字体在 canvas 上逐格点亮，
+            进入页面时像素从四周汇聚成字，离开时破碎飞散。
+            背景是一层低密度的磷光粒子漂移场。<span class="type-cursor" aria-hidden="true"></span>
+          </p>
+        </div>
+
+        <dl class="spec-list">
+          <div><dt>BUILT</dt><dd>2026.07</dd></div>
+          <div><dt>STACK</dt><dd>HTML / CSS / JS · ZERO DEPS</dd></div>
+          <div><dt>TYPE</dt><dd>7×9 BLOCK DISPLAY · 5×7 COMPACT</dd></div>
+          <div><dt>MOTION</dt><dd>PARTICLE ASSEMBLE / SHATTER · REDUCED-MOTION AWARE</dd></div>
+        </dl>
+      </article>
+
+      <div class="ascii-sea" aria-hidden="true">
+        <canvas data-ascii-wave></canvas>
+      </div>
+
+      <div class="ticker" aria-hidden="true">
+        <span class="ticker-track"><span>FIELD LOG&nbsp;//&nbsp;ROBOTICS&nbsp;//&nbsp;REINFORCEMENT LEARNING&nbsp;//&nbsp;SIM2REAL&nbsp;//&nbsp;AI NATIVE&nbsp;//&nbsp;KEEP BUILDING&nbsp;//&nbsp;</span><span>FIELD LOG&nbsp;//&nbsp;ROBOTICS&nbsp;//&nbsp;REINFORCEMENT LEARNING&nbsp;//&nbsp;SIM2REAL&nbsp;//&nbsp;AI NATIVE&nbsp;//&nbsp;KEEP BUILDING&nbsp;//&nbsp;</span></span>
+      </div>
+
+      <div class="telemetry" aria-hidden="true">
+        <span><i class="tele-square"></i>OPERATOR NAN &middot; ON DUTY</span>
+        <span><i class="tele-square"></i>ROVER DOG-01 &middot; ROVING</span>
+        <span><i class="tele-square"></i>RELAY SAT-02 &middot; IN ORBIT</span>
+        <span><i class="tele-square"></i>GROUND TWR-03 &middot; BEACON OK</span>
+        <span class="tele-link"><i class="tele-dot"></i>LINK STABLE</span>
+      </div>
+    </main>
+
+    <footer class="log-footer">
+      <p>NAN / FIELD LOG / 2026</p>
+      <p>
+        <a href="../">MAIN SITE -&gt;</a>
+        <a href="../journey-archive/">LIFE ARCHIVE -&gt;</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>

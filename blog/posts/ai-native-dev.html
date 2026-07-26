@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="把 AI 当同事：提示词即规格、验证闭环与保留判断力的 AI 原生开发工作流。">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0c0d0d" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#edf4fb" media="(prefers-color-scheme: light)">
+  <meta property="og:title" content="AI Native Dev — 我的 AI 原生开发工作流">
+  <meta property="og:description" content="提示词即规格、验证闭环、保留判断力：把 AI 当同事的开发方式。">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://nanbloom001.github.io/blog/posts/ai-native-dev.html">
+  <link rel="canonical" href="https://nanbloom001.github.io/blog/posts/ai-native-dev.html">
+  <script type="application/ld+json">
+  {"@context": "https://schema.org", "@type": "BlogPosting",
+   "headline": "AI Native Dev — 我的 AI 原生开发工作流", "datePublished": "2026-04-12",
+   "author": {"@type": "Person", "name": "nanbloom001", "url": "https://github.com/nanbloom001"},
+   "url": "https://nanbloom001.github.io/blog/posts/ai-native-dev.html"}
+  </script>
+  <link rel="alternate" type="application/rss+xml" title="Field Log" href="https://nanbloom001.github.io/blog/feed.xml">
+  <noscript><style>.visually-hidden { position: static; width: auto; height: auto; margin: 0 0 12px; clip: auto; white-space: normal; font: 700 26px/1.3 ui-monospace, Menlo, monospace; } .banner-stage { display: none; }</style></noscript>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230c0d0d'/%3E%3Crect x='4' y='4' width='3' height='3' fill='%23ff5a36'/%3E%3Crect x='9' y='4' width='3' height='3' fill='%23777b76'/%3E%3Crect x='4' y='9' width='3' height='3' fill='%23777b76'/%3E%3Crect x='9' y='9' width='3' height='3' fill='%23ff5a36'/%3E%3C/svg%3E">
+  <title>AI Native Dev | Field Log</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script defer src="../../assets/dot-font.js"></script>
+  <script defer src="../blog.js"></script>
+</head>
+<body>
+  <div id="read-progress" role="progressbar" aria-label="阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+  <canvas id="drift-field" aria-hidden="true"></canvas>
+  <span class="calibration calibration-nw" aria-hidden="true"></span>
+  <span class="calibration calibration-ne" aria-hidden="true"></span>
+  <span class="calibration calibration-sw" aria-hidden="true"></span>
+  <span class="calibration calibration-se" aria-hidden="true"></span>
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <div class="frame">
+    <header class="log-header">
+      <a class="wordmark" href="../index.html">NAN / FIELD LOG<i aria-hidden="true"></i></a>
+      <nav aria-label="博客导航">
+        <a class="active" href="../index.html">LOG</a>
+        <a href="../about.html">ABOUT</a>
+        <a href="../../journey-archive/">ARCHIVE</a>
+        <a href="https://github.com/nanbloom001" target="_blank" rel="noreferrer">GITHUB</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <article class="post">
+        <canvas class="post-emblem" data-planet data-shape="galaxy" data-orbit-text="SPEC · BUILD · VERIFY · " aria-hidden="true"></canvas>
+        <span class="sparkle" style="--x: 58%; --y: 14px; --d: 400ms" aria-hidden="true"></span>
+        <span class="sparkle accent" style="--x: 2%; --y: 240px; --d: 1200ms" aria-hidden="true"></span>
+        <p class="eyebrow">
+          <span>LOG 001</span>
+          <span class="eyebrow-separator">//</span>
+          <span class="dim">WORKFLOW / AI</span>
+        </p>
+        <h1 class="visually-hidden">AI Native Dev — 我的 AI 原生开发工作流</h1>
+        <div class="banner-stage post-banner">
+          <canvas data-pixel-banner data-text="AI NATIVE DEV" data-accent="DEV" data-pitch="9" aria-hidden="true"></canvas>
+        </div>
+        <span class="title-rule" aria-hidden="true"></span>
+        <p class="post-standfirst">
+          从"遇到问题去搜索"到"带着问题去协作"，AI 改变的不只是写代码的速度，
+          而是学习和验证一个想法的整个节奏。这篇记录我目前的工作流和几条原则。
+        </p>
+        <div class="post-meta">
+          <canvas class="pixel-date" data-pixel-date="2026.04.12" aria-label="发布于 2026 年 4 月 12 日"></canvas>
+          <span class="read-time">03 MIN READ</span>
+          <ul class="log-tags" aria-label="标签">
+            <li>AI CODING</li><li>工作流</li><li>工程实践</li>
+          </ul>
+        </div>
+
+        <div class="post-body">
+          <h2><span class="h-index">01</span>提示词即规格</h2>
+          <p>
+            让 AI 写代码之前，先强迫自己把需求写清楚：输入输出是什么、边界条件有哪些、
+            什么算"做对了"。这段文字本质上就是一份规格说明——很多时候写完规格，
+            我自己对问题的理解已经推进了一半。
+          </p>
+          <p>
+            模糊的提示词得到模糊的代码。与其在结果上反复纠正，
+            不如在开头把约束一次性说完整：运行环境、依赖限制、性能要求、代码风格。
+          </p>
+
+          <h2><span class="h-index">02</span>验证闭环：AI 的代码必须可运行地被检验</h2>
+          <p>
+            我给自己定的规矩：AI 生成的任何代码，合入之前必须有一条能跑的验证路径——
+            单元测试、最小复现脚本，或者仿真里的一次完整 rollout。
+            "看起来对"不算数，跑过才算数。
+          </p>
+          <ul>
+            <li>小函数：直接写测试用例，让 AI 一并生成，但断言值自己核对；</li>
+            <li>算法模块：先在玩具问题上验证，再接入真实系统；</li>
+            <li>训练代码：用极小规模（单环境、百步）冒烟测试，确认能跑通再放大。</li>
+          </ul>
+
+          <h2><span class="h-index">03</span>保留判断力</h2>
+          <blockquote>
+            <p>AI 可以替我打字，不能替我负责。方向、架构、验收标准，必须握在自己手里。</p>
+          </blockquote>
+          <p>
+            实践里最危险的时刻，是 AI 给出一个"流畅且自信"的方案而我恰好不熟悉那个领域。
+            我的对策是把不熟悉的部分显式标记出来，回头用文档或实验单独验证，
+            而不是因为它说得流畅就默认正确。
+          </p>
+
+          <h2><span class="h-index">04</span>当前的工具链</h2>
+          <p>
+            目前的分工大致是：终端里的 agent 负责多文件的工程改动和重构；
+            对话式模型负责推导、查漏和方案对比；代码补全处理行内的琐碎。
+            工具会一直换，但上面三条原则——写清规格、闭环验证、保留判断——
+            应该会比任何一个具体工具活得都久。
+          </p>
+        </div>
+
+        <footer>
+          <div class="section-label"><span>ADJACENT LOGS</span><span>NAVIGATE</span></div>
+          <nav class="post-adjacent" aria-label="相邻日志">
+            <a class="adjacent prev" href="../index.html" data-shatter>
+              <span>&lt;- INDEX</span>
+              <strong>ALL LOGS</strong>
+            </a>
+            <a class="adjacent next" href="reward-shaping.html" data-shatter>
+              <span>NEXT / LOG 002 -&gt;</span>
+              <strong>REWARD SHAPING</strong>
+            </a>
+          </nav>
+        </footer>
+      </article>
+
+      <div class="ticker" aria-hidden="true">
+        <span class="ticker-track"><span>FIELD LOG&nbsp;//&nbsp;ROBOTICS&nbsp;//&nbsp;REINFORCEMENT LEARNING&nbsp;//&nbsp;SIM2REAL&nbsp;//&nbsp;AI NATIVE&nbsp;//&nbsp;KEEP BUILDING&nbsp;//&nbsp;</span><span>FIELD LOG&nbsp;//&nbsp;ROBOTICS&nbsp;//&nbsp;REINFORCEMENT LEARNING&nbsp;//&nbsp;SIM2REAL&nbsp;//&nbsp;AI NATIVE&nbsp;//&nbsp;KEEP BUILDING&nbsp;//&nbsp;</span></span>
+      </div>
+
+      <div class="telemetry" aria-hidden="true">
+        <span><i class="tele-square"></i>OPERATOR NAN &middot; ON DUTY</span>
+        <span><i class="tele-square"></i>ROVER DOG-01 &middot; ROVING</span>
+        <span><i class="tele-square"></i>RELAY SAT-02 &middot; IN ORBIT</span>
+        <span><i class="tele-square"></i>GROUND TWR-03 &middot; BEACON OK</span>
+        <span class="tele-link"><i class="tele-dot"></i>LINK STABLE</span>
+      </div>
+    </main>
+
+    <footer class="log-footer">
+      <p>NAN / FIELD LOG / 2026</p>
+      <p>
+        <a href="../../">MAIN SITE -&gt;</a>
+        <a href="../../journey-archive/">LIFE ARCHIVE -&gt;</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
