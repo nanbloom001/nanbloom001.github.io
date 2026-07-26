@@ -13,7 +13,6 @@
   --pixel-future: #30332f;
   --pixel-complete: #846053;
   --pixel-ghost: #5d4138;
-  --earth-ocean: #3d5a80;
   --grid-dot: rgb(255 255 255 / 4%);
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --sans: Arial, "PingFang SC", sans-serif;
@@ -833,31 +832,3 @@ body.g-reveal .gutter-game { opacity: 1; }
   letter-spacing: .02em;
 }
 .hero-poem em { color: var(--ink); font-style: normal; }
-
-
-/* Earthrise: a small blue marble in the opening sky, and the translunar
-   trajectory arc with a pixel craft crawling along it. */
-.opening-earth {
-  position: fixed;
-  top: 9%;
-  right: 9%;
-  width: 132px;
-  height: 132px;
-  image-rendering: pixelated;
-  pointer-events: none;
-  opacity: 0;
-  z-index: -1;
-  will-change: transform, opacity;
-}
-
-#trajectory-arc {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  contain: strict;
-}
-
-@media (max-width: 900px) {
-  .opening-earth { width: 92px; height: 92px; top: 7%; right: 6%; }
-}
