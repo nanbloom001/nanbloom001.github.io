@@ -51,6 +51,7 @@
         <canvas class="post-emblem" data-planet data-shape="galaxy" data-orbit-text="SPEC · BUILD · VERIFY · " aria-hidden="true"></canvas>
         <span class="sparkle" style="--x: 58%; --y: 14px; --d: 400ms" aria-hidden="true"></span>
         <span class="sparkle accent" style="--x: 2%; --y: 240px; --d: 1200ms" aria-hidden="true"></span>
+        <p class="bootline" data-bootline="> OPEN LOG_001 :: TRANSMISSION DECODED" aria-hidden="true"></p>
         <p class="eyebrow">
           <span>LOG 001</span>
           <span class="eyebrow-separator">//</span>
@@ -114,6 +115,11 @@
             工具会一直换，但上面三条原则——写清规格、闭环验证、保留判断——
             应该会比任何一个具体工具活得都久。
           </p>
+          <div class="log-seal" aria-hidden="true">
+            <span class="seal-wave"><i></i><i></i><i></i></span>
+            <strong>LOG VERIFIED</strong>
+            <span class="seal-sub">FIELD MISSION &middot; NAN</span>
+          </div>
         </div>
 
         <footer>
@@ -136,6 +142,7 @@
       </div>
 
       <div class="telemetry" aria-hidden="true">
+        <canvas class="tele-wave" data-tele-wave></canvas>
         <span><i class="tele-square"></i>OPERATOR NAN &middot; ON DUTY</span>
         <span><i class="tele-square"></i>ROVER DOG-01 &middot; ROVING</span>
         <span><i class="tele-square"></i>RELAY SAT-02 &middot; IN ORBIT</span>

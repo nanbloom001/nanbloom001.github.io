@@ -13,7 +13,7 @@
   <meta property="og:url" content="https://nanbloom001.github.io/blog/">
   <link rel="canonical" href="https://nanbloom001.github.io/blog/">
   <link rel="alternate" type="application/rss+xml" title="Field Log" href="https://nanbloom001.github.io/blog/feed.xml">
-  <noscript><style>.visually-hidden { position: static; width: auto; height: auto; margin: 0 0 12px; clip: auto; white-space: normal; font: 700 26px/1.3 ui-monospace, Menlo, monospace; } .banner-stage, .opening { display: none; }</style></noscript>
+  <noscript><style>.visually-hidden { position: static; width: auto; height: auto; margin: 0 0 12px; clip: auto; white-space: normal; font: 700 26px/1.3 ui-monospace, Menlo, monospace; } .banner-stage, .opening-moon, .opening-hint { display: none; } .opening { height: auto; min-height: 0; }</style></noscript>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230c0d0d'/%3E%3Crect x='4' y='4' width='3' height='3' fill='%23ff5a36'/%3E%3Crect x='9' y='4' width='3' height='3' fill='%23777b76'/%3E%3Crect x='4' y='9' width='3' height='3' fill='%23777b76'/%3E%3Crect x='9' y='9' width='3' height='3' fill='%23ff5a36'/%3E%3C/svg%3E">
   <title>Field Log | nanbloom001</title>
   <link rel="stylesheet" href="styles.css">
@@ -40,15 +40,19 @@
     </header>
 
     <main id="main">
-      <section class="opening" aria-hidden="true">
-        <canvas class="opening-moon" data-opening-moon data-planet data-cell="12" data-body-scale="0.46" data-max-dpr="1"></canvas>
-        <div class="opening-hint">
+      <section class="opening" aria-labelledby="hero-title">
+        <canvas class="opening-moon" data-opening-moon data-planet data-cell="10" data-body-scale="0.46" data-max-dpr="1" aria-hidden="true"></canvas>
+        <h1 id="hero-title" class="visually-hidden">Field Log — 楠的个人博客</h1>
+        <div class="banner-stage opening-title">
+          <canvas data-pixel-banner data-text="FIELD LOG" data-accent="LOG" data-pitch="10" data-cell-size="10" aria-hidden="true"></canvas>
+        </div>
+        <div class="opening-hint" aria-hidden="true">
           <span class="hint-drip"><i></i><i></i><i></i></span>
           <span>SCROLL TO ENTER</span>
         </div>
       </section>
 
-      <section class="hero" aria-labelledby="hero-title">
+      <section class="hero" aria-label="简介">
         <span class="sparkle" style="--x: 68%; --y: 14%; --d: 300ms" aria-hidden="true"></span>
         <span class="sparkle accent" style="--x: 88%; --y: 30%; --d: 1100ms" aria-hidden="true"></span>
         <span class="sparkle" style="--x: 95%; --y: 66%; --d: 1900ms" aria-hidden="true"></span>
@@ -58,10 +62,6 @@
           <span class="dim">EST. 2026</span>
           <span class="system-state"><i aria-hidden="true"></i>REC</span>
         </p>
-        <h1 id="hero-title" class="visually-hidden">Field Log — 楠的个人博客</h1>
-        <div class="banner-stage">
-          <canvas data-pixel-banner data-text="FIELD LOG" data-accent="LOG" data-pitch="12" aria-hidden="true"></canvas>
-        </div>
         <span class="title-rule" aria-hidden="true"></span>
         <p class="hero-note">
           记录机器人、强化学习与 AI 原生开发路上的实验、踩坑与验证。
@@ -73,7 +73,7 @@
           <div><dt>STATUS</dt><dd><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>UPDATING</dd></div>
         </dl>
         <div class="scene" aria-hidden="true">
-          <canvas class="galaxy" data-planet data-shape="galaxy" data-cell="3"></canvas>
+          <canvas class="galaxy" data-planet data-shape="galaxy" data-cell="4"></canvas>
           <canvas class="scene-field" data-scene-field></canvas>
           <canvas class="planet" data-planet data-morph-target data-orbit-text="FROM SIMULATION TO REALITY · "></canvas>
         </div>
@@ -151,6 +151,7 @@
       </div>
 
       <div class="telemetry" aria-hidden="true">
+        <canvas class="tele-wave" data-tele-wave></canvas>
         <span><i class="tele-square"></i>OPERATOR NAN &middot; ON DUTY</span>
         <span><i class="tele-square"></i>ROVER DOG-01 &middot; ROVING</span>
         <span><i class="tele-square"></i>RELAY SAT-02 &middot; IN ORBIT</span>

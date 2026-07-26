@@ -49,7 +49,7 @@
       if (!stage) return;
       this.stage = stage;
       const result = DotFont.makeBlockPoints(this.text, { cols: 7, rows: 9, maxPitch: this.maxPitch }, stage);
-      const size = Math.max(2, Math.round(result.pitch * 0.62));
+      const size = Number(this.canvas.dataset.cellSize) || Math.max(2, Math.round(result.pitch * 0.62));
       this.points = result.points.map((point) => ({
         x: point.x,
         y: point.y,
@@ -244,7 +244,7 @@
       return {
         x: Math.random() * this.width,
         y: anywhere ? Math.random() * this.height : this.height + 4,
-        size: Math.random() < 0.82 ? 2 : 3,
+        size: 4,
         speed: 4 + Math.random() * 11,
         drift: (Math.random() - 0.5) * 3,
         alpha: 0.05 + Math.random() * 0.15,
@@ -326,7 +326,7 @@
       ],
     },
     antenna: {
-      pixel: 3,
+      pixel: 4,
       sequence: [[0, 900], [1, 450]],
       frames: [
         [
@@ -489,6 +489,7 @@
       this.lastDraw = 0;
       this.orbitText = (canvas.dataset.orbitText || "").toUpperCase();
       this.accentCrest = canvas.dataset.accentCrest === "true";
+      this.spinOffset = 0;
       this.craters = [
         { lon: 0.4, lat: 0.3, r: 0.3, depth: 0.5 },
         { lon: 1.9, lat: -0.35, r: 0.24, depth: 0.55 },
@@ -543,14 +544,12 @@
 
     brightnessAt(nx, ny, rr, time, craterDirs) {
       if (this.shape === "galaxy") {
-        const spin = time * 0.04;
-        const cos = Math.cos(spin);
-        const sin = Math.sin(spin);
-        const rx = nx * cos - ny * sin;
-        const ry = (nx * sin + ny * cos) * 2.1;
-        const dist = rx * rx + ry * ry;
+        const spin = time * 0.04 + this.spinOffset * 0.5;
+        const ex = nx;
+        const ey = ny * 2.1;
+        const dist = ex * ex + ey * ey;
         if (dist > 1.2) return 0;
-        const arm = 0.5 + 0.5 * Math.sin(2 * Math.atan2(ry, rx) - Math.sqrt(dist) * 5.4);
+        const arm = 0.5 + 0.5 * Math.sin(2 * (Math.atan2(ey, ex) + spin) - Math.sqrt(dist) * 5.4);
         return Math.exp(-dist * 4) * 1.15 + arm * Math.exp(-dist * 2.2) * 0.8;
       }
       if (this.shape === "target") {
@@ -598,7 +597,8 @@
           value = Math.min(1.05, value * 1.14);
         }
       }
-      value += 0.06 * Math.sin(nx * 21 + 2 * Math.sin(ny * 17)) * Math.sin(ny * 23 + 2 * Math.sin(nx * 13));
+      value += 0.06 * Math.sin((Math.atan2(nx, nz) + craterDirs.spin) * 9 + 2 * Math.sin(ny * 17))
+        * Math.sin(ny * 23 + 2 * Math.sin((Math.atan2(nx, nz) + craterDirs.spin) * 7));
       return value;
     }
 
@@ -609,7 +609,7 @@
       const colors = palette();
       const centerX = width / 2;
       const centerY = height / 2;
-      const spin = time * 0.06;
+      const spin = time * 0.15 + this.spinOffset;
       const toDir = (spot, rimFactor) => {
         const lon = spot.lon + spin;
         return {
@@ -622,6 +622,7 @@
         };
       };
       const craterDirs = this.shape !== "sphere" ? null : {
+        spin,
         craters: this.craters.map((crater) => toDir(crater, 1.3)),
         maria: this.maria.map((sea) => toDir(sea)),
       };
@@ -924,7 +925,7 @@
       this.lastTime = time;
       const { context, width, height } = this.stage;
       const colors = palette();
-      const snap = (value) => Math.round(value / 3) * 3;
+      const snap = (value) => Math.round(value / 4) * 4;
       context.clearRect(0, 0, width, height);
 
       const boxX = width * 0.3;
@@ -946,23 +947,22 @@
         const phase = Math.floor(time * 1.6 + index * 1.3) % 4;
         context.globalAlpha = [0.4, 0.7, 1, 0.7][phase];
         context.fillStyle = index === 3 ? colors.accent : colors.ink;
-        const size = index === 3 ? 4 : 3;
-        context.fillRect(snap(boxX + px * boxWidth), snap(boxY + py * boxHeight), size, size);
+        context.fillRect(snap(boxX + px * boxWidth), snap(boxY + py * boxHeight), 4, 4);
       });
 
       const SATELLITE_PERIOD = 36;
-      const satelliteX = ((time % SATELLITE_PERIOD) / SATELLITE_PERIOD) * (width + 80) - 40;
+      const satelliteX = snap(((time % SATELLITE_PERIOD) / SATELLITE_PERIOD) * (width + 80) - 40);
       const satelliteY = 20;
       context.fillStyle = colors.muted;
       context.globalAlpha = 0.55;
-      context.fillRect(snap(satelliteX) - 10, satelliteY, 6, 3);
-      context.fillRect(snap(satelliteX) + 5, satelliteY, 6, 3);
+      context.fillRect(satelliteX - 14, satelliteY + 2, 8, 4);
+      context.fillRect(satelliteX + 6, satelliteY + 2, 8, 4);
       context.globalAlpha = 0.85;
       context.fillStyle = colors.ink;
-      context.fillRect(snap(satelliteX) - 2, satelliteY - 1, 5, 5);
+      context.fillRect(satelliteX - 4, satelliteY, 8, 8);
       if (Math.floor(time * 2) % 2) {
         context.fillStyle = colors.accent;
-        context.fillRect(snap(satelliteX), satelliteY - 4, 2, 2);
+        context.fillRect(satelliteX - 2, satelliteY - 6, 4, 4);
       }
 
       if (!this.meteor && time > this.nextMeteorAt) {
@@ -979,11 +979,124 @@
           context.fillStyle = colors.ink;
           for (let segment = 0; segment < 7; segment += 1) {
             context.globalAlpha = (1 - age / 0.9) * (1 - segment / 7) * 0.9;
-            context.fillRect(snap(headX + segment * 8), snap(headY - segment * 3), 3 - (segment > 3 ? 1 : 0), 2);
+            context.fillRect(snap(headX + segment * 8), snap(headY - segment * 3), 4, 4);
           }
         }
       }
       context.globalAlpha = 1;
+    }
+  }
+
+  // Tiny scrolling ECG-style waveform for the telemetry strip.
+  class TeleWave {
+    constructor(canvas) {
+      this.canvas = canvas;
+      this.pattern = [0, 0, 0, 1, 0, -1, 4, -3, 1, 0, 0, 1, 0, 0, 0, 2, 0];
+      this.fps = 8;
+      this.frame = 0;
+      this.lastDraw = 0;
+      this.resizeObserver = new ResizeObserver(() => this.mount());
+      this.resizeObserver.observe(canvas);
+      runWhenVisible(canvas, () => this.start(), () => this.stop());
+    }
+
+    mount() {
+      const stage = setupCanvas(this.canvas);
+      if (!stage) return;
+      this.stage = stage;
+      this.render(this.lastTime || 0);
+    }
+
+    refresh() { this.render(this.lastTime || 0); }
+
+    start() {
+      if (this.frame) return;
+      const step = (now) => {
+        this.frame = requestAnimationFrame(step);
+        if (now - this.lastDraw < 1000 / this.fps) return;
+        this.lastDraw = now;
+        this.render(now / 1000);
+      };
+      this.frame = requestAnimationFrame(step);
+    }
+
+    stop() {
+      cancelAnimationFrame(this.frame);
+      this.frame = 0;
+    }
+
+    render(time) {
+      if (!this.stage) return;
+      this.lastTime = time;
+      const { context, width, height } = this.stage;
+      const colors = palette();
+      const cols = Math.floor(width / 4);
+      const mid = Math.round(height / 2 / 4) * 4;
+      const shift = Math.floor(time * 7);
+      context.clearRect(0, 0, width, height);
+      for (let col = 0; col < cols; col += 1) {
+        const value = this.pattern[(col + shift) % this.pattern.length];
+        context.fillStyle = value >= 3 ? colors.accent : colors.muted;
+        context.globalAlpha = value >= 3 ? 0.95 : 0.7;
+        context.fillRect(col * 4, mid - value * 3 - 2, 3, 3);
+      }
+      context.globalAlpha = 1;
+    }
+  }
+
+  // Small pixel burst wherever the pointer clicks.
+  class ClickBurst {
+    constructor() {
+      this.canvas = document.createElement("canvas");
+      this.canvas.id = "click-burst";
+      this.canvas.setAttribute("aria-hidden", "true");
+      document.body.append(this.canvas);
+      this.context = this.canvas.getContext("2d");
+      this.bursts = [];
+      this.frame = 0;
+      this.resize();
+      addEventListener("resize", () => this.resize(), { passive: true });
+      addEventListener("pointerdown", (event) => {
+        if (reducedMotion.matches) return;
+        this.bursts.push({ x: event.clientX, y: event.clientY, at: performance.now() });
+        if (this.bursts.length > 4) this.bursts.shift();
+        this.start();
+      }, { passive: true });
+    }
+
+    resize() {
+      const ratio = Math.min(devicePixelRatio || 1, 1.5);
+      this.canvas.width = Math.round(innerWidth * ratio);
+      this.canvas.height = Math.round(innerHeight * ratio);
+      this.context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+
+    start() {
+      if (this.frame) return;
+      const colors = palette();
+      const snap = (value) => Math.round(value / 4) * 4;
+      const step = (now) => {
+        this.context.clearRect(0, 0, innerWidth, innerHeight);
+        this.bursts = this.bursts.filter((burst) => now - burst.at < 380);
+        for (const burst of this.bursts) {
+          const age = (now - burst.at) / 380;
+          const distance = 6 + age * 20;
+          for (let index = 0; index < 6; index += 1) {
+            const angle = (index / 6) * Math.PI * 2 + 0.5;
+            this.context.fillStyle = index === 0 ? colors.accent : colors.ink;
+            this.context.globalAlpha = (1 - age) * 0.9;
+            this.context.fillRect(
+              snap(burst.x + Math.cos(angle) * distance),
+              snap(burst.y + Math.sin(angle) * distance),
+              4, 4,
+            );
+          }
+        }
+        this.context.globalAlpha = 1;
+        if (this.bursts.length) this.frame = requestAnimationFrame(step);
+        else this.frame = 0;
+      };
+      this.frame = requestAnimationFrame(step);
     }
   }
 
@@ -1002,6 +1115,37 @@
   const waves = [...document.querySelectorAll("[data-ascii-wave]")].map((canvas) => new AsciiWave(canvas));
   const sceneFields = [...document.querySelectorAll("[data-scene-field]")].map((canvas) => new SceneField(canvas));
   const backdrop = new StarBackdrop();
+  const teleWaves = [...document.querySelectorAll("[data-tele-wave]")].map((canvas) => new TeleWave(canvas));
+  new ClickBurst();
+
+  // Terminal boot lines: type themselves out once on load.
+  document.querySelectorAll("[data-bootline]").forEach((line) => {
+    const text = line.dataset.bootline || "";
+    if (reducedMotion.matches) {
+      line.textContent = text;
+      return;
+    }
+    let index = 0;
+    const timer = setInterval(() => {
+      index += 1;
+      line.textContent = text.slice(0, index);
+      if (index >= text.length) clearInterval(timer);
+    }, 26);
+  });
+
+  // Log seals stamp down when they scroll into view.
+  const seals = document.querySelectorAll(".log-seal");
+  if (seals.length) {
+    const sealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-stamped");
+          sealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    seals.forEach((seal) => sealObserver.observe(seal));
+  }
 
   lightScheme.addEventListener("change", () => {
     banner && banner.drawStatic();
@@ -1011,6 +1155,7 @@
     planets.forEach((planet) => planet.refresh());
     waves.forEach((wave) => wave.refresh());
     sceneFields.forEach((scene) => scene.refresh());
+    teleWaves.forEach((wave) => wave.refresh());
     backdrop.refresh();
   });
 
@@ -1064,9 +1209,8 @@
   const postEmblem = document.querySelector(".post-emblem");
   if (sceneGalaxy) {
     parallaxLayers.push((y) => {
-      const scale = Math.max(0.72, 1 - y * 0.00045);
       sceneGalaxy.style.transform =
-        `translate(${Math.min(60, y * 0.05).toFixed(1)}px, ${Math.min(96, y * 0.3).toFixed(1)}px) scale(${scale.toFixed(3)})`;
+        `translate(${(Math.round(Math.min(24, y * 0.02) / 4) * 4)}px, ${(Math.round(Math.min(16, y * 0.05) / 4) * 4)}px)`;
     });
   }
   if (postEmblem) {
@@ -1075,51 +1219,78 @@
     });
   }
 
-  // Opening morph: the oversized moon that fills the first screen shrinks
-  // along an eased path into its slot inside the scene band, cross-fading
-  // with the in-scene moon over the last stretch.
+  // Opening moon: stays put as a fixed backdrop while the first screen of
+  // content scrolls over it. Crossing the trigger point starts a self-driven
+  // docking animation (time-based, not scroll-scrubbed) that flies the moon
+  // into its slot in the scene band; scrolling back re-launches it.
   const openingMoon = document.querySelector("[data-opening-moon]");
   const morphTarget = document.querySelector("[data-morph-target]");
   const openingSection = document.querySelector(".opening");
   if (openingMoon && morphTarget && openingSection && !reducedMotion.matches) {
-    const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - ((-2 * t + 2) ** 3) / 2);
+    const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2);
+    const DURATION = 950;
     let metrics = null;
+    let docked = false;
+    let animFrame = 0;
+    let progress = 0;
     const measure = () => {
       const openRect = openingSection.getBoundingClientRect();
       const targetRect = morphTarget.getBoundingClientRect();
       const moonSize = openingMoon.offsetWidth || 1;
+      const openTopDoc = openRect.top + scrollY;
       metrics = {
         aLeft: innerWidth * 0.3 - moonSize / 2,
-        aTop: openRect.top + scrollY + openRect.height * 1.02 - moonSize / 2,
+        aTop: openTopDoc + openRect.height * 1.02 - moonSize / 2,
         aSize: moonSize,
         bLeft: targetRect.left,
-        bTop: targetRect.top + scrollY,
+        bTopDoc: targetRect.top + scrollY,
         bSize: morphTarget.offsetWidth || 1,
-        span: Math.max(240, openRect.height * 0.92),
+        trigger: Math.max(200, openRect.height * 0.55),
       };
     };
-    const applyMorph = () => {
+    const renderPose = (p) => {
       if (!metrics) return;
-      const y = scrollY;
-      const progress = Math.min(1, Math.max(0, y / metrics.span));
-      const eased = easeInOut(progress);
-      const left = metrics.aLeft + (metrics.bLeft - metrics.aLeft) * eased;
-      const top = metrics.aTop + (metrics.bTop - metrics.aTop) * eased - y;
-      const scale = 1 + (metrics.bSize / metrics.aSize - 1) * eased;
+      const targetTopViewport = metrics.bTopDoc - scrollY;
+      const left = metrics.aLeft + (metrics.bLeft - metrics.aLeft) * p;
+      const top = metrics.aTop + (targetTopViewport - metrics.aTop) * p;
+      const scale = Math.pow(metrics.bSize / metrics.aSize, p);
       openingMoon.style.transform = `translate(${left.toFixed(1)}px, ${top.toFixed(1)}px) scale(${scale.toFixed(4)})`;
-      const fade = progress < 0.86 ? 1 : 1 - (progress - 0.86) / 0.14;
+      const fade = p < 0.72 ? 1 : 1 - (p - 0.72) / 0.28;
       openingMoon.style.opacity = fade.toFixed(3);
-      openingMoon.style.visibility = progress >= 1 ? "hidden" : "visible";
-      morphTarget.style.opacity = progress >= 1 ? "1" : (1 - fade).toFixed(3);
+      openingMoon.style.visibility = p >= 0.999 ? "hidden" : "visible";
+      morphTarget.style.opacity = p >= 0.999 ? "1" : (1 - fade).toFixed(3);
+    };
+    const flyTo = (target) => {
+      cancelAnimationFrame(animFrame);
+      const from = progress;
+      let startedAt = 0;
+      const step = (now) => {
+        if (!startedAt) startedAt = now;
+        const t = Math.min(1, (now - startedAt) / DURATION);
+        progress = from + (target - from) * easeInOut(t);
+        renderPose(progress);
+        if (t < 1) animFrame = requestAnimationFrame(step);
+        else animFrame = 0;
+      };
+      animFrame = requestAnimationFrame(step);
     };
     morphTarget.style.opacity = "0";
     measure();
-    applyMorph();
+    renderPose(0);
+    addEventListener("scroll", () => {
+      if (!metrics) return;
+      if (!docked && scrollY > metrics.trigger) {
+        docked = true;
+        flyTo(1);
+      } else if (docked && scrollY < metrics.trigger - 160) {
+        docked = false;
+        flyTo(0);
+      }
+    }, { passive: true });
     addEventListener("resize", () => {
       measure();
-      applyMorph();
+      renderPose(progress);
     }, { passive: true });
-    parallaxLayers.push(() => applyMorph());
   } else if (morphTarget) {
     morphTarget.style.opacity = "1";
   }
