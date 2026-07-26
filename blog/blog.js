@@ -805,16 +805,14 @@
     }
   }
 
-  // Full-page pixel starfield: Bayer-dithered nebula patches plus micro
-  // stars. Painted once per resize/theme onto its own fixed canvas — zero
-  // per-frame cost. Sits behind the drifting dust.
+  // Full-page pixel starfield, painted by the shared assets/starfield.js
+  // module — zero per-frame cost, repainted only on resize or theme change.
   class StarBackdrop {
     constructor() {
       this.canvas = document.createElement("canvas");
       this.canvas.id = "star-backdrop";
       this.canvas.setAttribute("aria-hidden", "true");
       document.body.prepend(this.canvas);
-      this.context = this.canvas.getContext("2d");
       this.resizeFrame = 0;
       this.paint();
       addEventListener("resize", () => {
@@ -826,52 +824,8 @@
     refresh() { this.paint(); }
 
     paint() {
-      const ratio = Math.min(devicePixelRatio || 1, 1.5);
-      const width = innerWidth;
-      const height = innerHeight;
-      this.canvas.width = Math.round(width * ratio);
-      this.canvas.height = Math.round(height * ratio);
-      this.context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      const { context } = this;
-      const colors = palette();
-      const CELL = 4;
-      const blob = (x, y) =>
-        0.5 + 0.5 * Math.sin(x * 1.9 + 2.4 * Math.sin(y * 1.2)) * Math.sin(y * 2.1 + 2.2 * Math.sin(x * 0.8));
-      context.clearRect(0, 0, width, height);
-      context.fillStyle = colors.ink;
-      const cols = Math.ceil(width / CELL);
-      const rows = Math.ceil(height / CELL);
-      const ALPHAS = [0, 0.05, 0.09, 0.13];
-      for (let gy = 0; gy < rows; gy += 1) {
-        for (let gx = 0; gx < cols; gx += 1) {
-          const px = gx / cols;
-          const py = gy / rows;
-          let density = 0.62 * blob(px * 2.7, py * 2.7) + 0.38 * blob(px * 6.3 + 7.1, py * 6.3 + 3.4);
-          density = (density - 0.44) * 1.55;
-          density += (hash2(gx, gy) - 0.5) * 0.12;
-          const threshold = (BAYER_4[gy % 4][gx % 4] + 0.5) / 16;
-          let level = Math.floor(density * 3 + threshold);
-          level = Math.max(0, Math.min(3, level));
-          if (!level) continue;
-          context.globalAlpha = ALPHAS[level];
-          context.fillRect(gx * CELL, gy * CELL, CELL - 1, CELL - 1);
-        }
-      }
-      const starCount = Math.round((width * height) / 11000);
-      for (let index = 0; index < starCount; index += 1) {
-        const x = Math.floor(hash2(index, 7) * width);
-        const y = Math.floor(hash2(index, 13) * height);
-        const size = hash2(index, 29) > 0.85 ? 2 : 1;
-        context.globalAlpha = 0.1 + hash2(index, 41) * 0.3;
-        context.fillRect(x, y, size, size);
-        if (hash2(index, 53) > 0.96) {
-          context.fillRect(x - 3, y, 2, 1);
-          context.fillRect(x + 2, y, 2, 1);
-          context.fillRect(x, y - 3, 1, 2);
-          context.fillRect(x, y + 2, 1, 2);
-        }
-      }
-      context.globalAlpha = 1;
+      if (typeof window.Starfield === "undefined") return;
+      window.Starfield.paint(this.canvas, palette().ink);
     }
   }
 
@@ -1100,6 +1054,150 @@
     }
   }
 
+  // Gentle pixel rain — a quiet drizzle of thin phosphor streaks falling
+  // across the whole page. Low alpha, slow pace, a slight wind. The rare
+  // accent-coloured drop is a tiny warm detail. Sits with the moon and the
+  // dithered starfield as part of the same rainy-night sky.
+  class Rain {
+    constructor() {
+      this.canvas = document.createElement("canvas");
+      this.canvas.id = "rain-field";
+      this.canvas.setAttribute("aria-hidden", "true");
+      document.body.append(this.canvas);
+      this.ctx = this.canvas.getContext("2d");
+      this.frame = 0;
+      this.resizeFrame = 0;
+      this.colors = palette();
+      this.splashes = [];
+      this.surfaceY = -1;
+      this.surfaceL = 0;
+      this.surfaceR = 0;
+      this.surfaceEl = document.querySelector(".opening-title") || document.querySelector(".post-banner") || document.querySelector(".banner-stage");
+      this.resize();
+      this.measureSurface();
+      addEventListener("resize", () => {
+        cancelAnimationFrame(this.resizeFrame);
+        this.resizeFrame = requestAnimationFrame(() => { this.resize(); this.measureSurface(); });
+      }, { passive: true });
+      addEventListener("scroll", () => {
+        cancelAnimationFrame(this.scrollFrame);
+        this.scrollFrame = requestAnimationFrame(() => this.measureSurface());
+      }, { passive: true });
+      reducedMotion.addEventListener("change", () => {
+        cancelAnimationFrame(this.frame);
+        if (reducedMotion.matches) this.draw();
+        else this.start();
+      });
+      document.addEventListener("visibilitychange", () => {
+        cancelAnimationFrame(this.frame);
+        if (!document.hidden && !reducedMotion.matches) this.start();
+      });
+      if (reducedMotion.matches) this.draw();
+      else this.start();
+    }
+    refresh() { this.colors = palette(); if (reducedMotion.matches) this.draw(); }
+    measureSurface() {
+      if (!this.surfaceEl) { this.surfaceY = -1; return; }
+      const r = this.surfaceEl.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > this.height) { this.surfaceY = -1; return; }
+      this.surfaceY = r.top + r.height * 0.34;
+      this.surfaceL = r.left;
+      this.surfaceR = r.right;
+    }
+    resize() {
+      const ratio = Math.min(devicePixelRatio || 1, 1.5);
+      this.width = innerWidth;
+      this.height = innerHeight;
+      this.canvas.width = Math.round(this.width * ratio);
+      this.canvas.height = Math.round(this.height * ratio);
+      this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      const count = Math.round(this.width / 26);
+      this.drops = Array.from({ length: count }, () => this.spawn(true));
+      if (reducedMotion.matches) this.draw();
+    }
+    spawn(anywhere) {
+      return {
+        x: Math.random() * this.width,
+        y: anywhere ? Math.random() * this.height : -22,
+        vy: 150 + Math.random() * 130,
+        vx: 12 + Math.random() * 16,
+        headAlpha: 0.6 + Math.random() * 0.32,
+        accent: Math.random() < 0.08,
+      };
+    }
+    spawnSplash(x, y) {
+      this.splashes.push({ x, y, at: performance.now() });
+      if (this.splashes.length > 16) this.splashes.shift();
+    }
+    drawDrop(d) {
+      const ctx = this.ctx, c = this.colors, segs = 6;
+      for (let i = segs - 1; i >= 0; i -= 1) {
+        const a = d.headAlpha * (i === 0 ? 1 : 1 - i / segs);
+        if (a < 0.05) continue;
+        ctx.globalAlpha = a;
+        ctx.fillStyle = i === 0 && d.accent ? c.accent : c.ink;
+        if (i === 0) ctx.fillRect(d.x | 0, d.y | 0, 2, 3);
+        else ctx.fillRect(d.x | 0, (d.y - i * 2) | 0, 1, 2);
+      }
+    }
+    drawSplash(s, now) {
+      const age = (now - s.at) / 340;
+      if (age >= 1) return false;
+      const ctx = this.ctx, c = this.colors;
+      const r = 1 + age * 7;
+      const a = (1 - age) * 0.6;
+      ctx.fillStyle = c.accent;
+      ctx.globalAlpha = a;
+      for (let k = 0; k < 8; k += 1) {
+        const ang = (k / 8) * Math.PI * 2;
+        ctx.fillRect((s.x + Math.cos(ang) * r) | 0, (s.y + Math.sin(ang) * r) | 0, 1, 1);
+      }
+      ctx.globalAlpha = Math.min(1, a * 1.6);
+      for (let j = 0; j < 3; j += 1) {
+        const ang = -Math.PI / 2 + (j - 1) * 0.7;
+        const dx = Math.cos(ang) * age * 11;
+        const dy = Math.sin(ang) * age * 11 + age * age * 9;
+        ctx.fillRect((s.x + dx) | 0, (s.y + dy) | 0, 2, 2);
+      }
+      return true;
+    }
+    draw(now) {
+      const ctx = this.ctx;
+      ctx.clearRect(0, 0, this.width, this.height);
+      for (const d of this.drops) this.drawDrop(d);
+      if (now) this.splashes = this.splashes.filter((s) => this.drawSplash(s, now));
+      ctx.globalAlpha = 1;
+    }
+    start() {
+      this.last = performance.now();
+      const FRAME = 1000 / 30;
+      let acc = 0;
+      const step = (now) => {
+        this.frame = requestAnimationFrame(step);
+        let dt = now - this.last;
+        this.last = now;
+        if (dt > 120) dt = 120;
+        acc += dt;
+        if (acc < FRAME) return;
+        const s = acc / 1000;
+        acc = 0;
+        for (const d of this.drops) {
+          const prevY = d.y;
+          d.y += d.vy * s;
+          d.x += d.vx * s;
+          if (this.surfaceY > 0 && d.x >= this.surfaceL && d.x <= this.surfaceR && prevY < this.surfaceY && d.y >= this.surfaceY) {
+            this.spawnSplash(d.x, this.surfaceY);
+            Object.assign(d, this.spawn(false));
+          } else if (d.y > this.height + 24 || d.x > this.width + 24) {
+            Object.assign(d, this.spawn(false));
+          }
+        }
+        this.draw(now);
+      };
+      this.frame = requestAnimationFrame(step);
+    }
+  }
+
   const hasFont = typeof window.DotFont !== "undefined";
   const bannerCanvas = document.querySelector("[data-pixel-banner]");
   const banner = hasFont && bannerCanvas ? new PixelBanner(bannerCanvas) : null;
@@ -1115,6 +1213,7 @@
   const waves = [...document.querySelectorAll("[data-ascii-wave]")].map((canvas) => new AsciiWave(canvas));
   const sceneFields = [...document.querySelectorAll("[data-scene-field]")].map((canvas) => new SceneField(canvas));
   const backdrop = new StarBackdrop();
+  const rainField = new Rain();
   const teleWaves = [...document.querySelectorAll("[data-tele-wave]")].map((canvas) => new TeleWave(canvas));
   new ClickBurst();
 
@@ -1156,6 +1255,7 @@
     waves.forEach((wave) => wave.refresh());
     sceneFields.forEach((scene) => scene.refresh());
     teleWaves.forEach((wave) => wave.refresh());
+    rainField && rainField.refresh();
     backdrop.refresh();
   });
 
@@ -1316,6 +1416,7 @@
   if (adjacentPrev || adjacentNext) {
     addEventListener("keydown", (event) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (window.__tetrisPlaying) return;
       const target = event.target;
       if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
       if (event.key === "ArrowLeft" && adjacentPrev) adjacentPrev.click();

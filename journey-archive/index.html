@@ -17,9 +17,11 @@
   <title>Life Archive | nanbloom001</title>
   <link rel="stylesheet" href="styles.css">
   <script defer src="../assets/dot-font.js"></script>
+  <script defer src="../assets/starfield.js"></script>
   <script defer src="script.js"></script>
 </head>
 <body>
+  <canvas id="archive-sky" aria-hidden="true"></canvas>
   <main class="archive">
     <span class="calibration calibration-nw" aria-hidden="true"></span>
     <span class="calibration calibration-ne" aria-hidden="true"></span>
@@ -77,5 +79,26 @@
       <aside id="minimap" aria-hidden="true"></aside>
     </section>
   </main>
+
+  <div class="archive-telemetry" aria-hidden="true">
+    <span><i class="tele-square"></i>OPERATOR NAN &middot; ON DUTY</span>
+    <span><i class="tele-square"></i>ARCHIVE &middot; 17 NODES</span>
+    <span class="tele-link"><i class="tele-dot"></i>LINK STABLE</span>
+  </div>
+
+  <script>
+    (() => {
+      const light = matchMedia("(prefers-color-scheme: light)");
+      function ink() {
+        return getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
+      }
+      function paintSky() {
+        if (window.Starfield) window.Starfield.paint(document.getElementById("archive-sky"), ink());
+      }
+      addEventListener("resize", paintSky, { passive: true });
+      light.addEventListener("change", paintSky);
+      paintSky();
+    })();
+  </script>
 </body>
 </html>

@@ -24,7 +24,9 @@
   <title>Reward Shaping | Field Log</title>
   <link rel="stylesheet" href="../styles.css">
   <script defer src="../../assets/dot-font.js"></script>
+  <script defer src="../../assets/starfield.js"></script>
   <script defer src="../blog.js"></script>
+  <script defer src="../tetris.js"></script>
 </head>
 <body>
   <div id="read-progress" role="progressbar" aria-label="阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
@@ -37,11 +39,11 @@
 
   <div class="frame">
     <header class="log-header">
-      <a class="wordmark" href="../index.html">NAN / FIELD LOG<i aria-hidden="true"></i></a>
+      <a class="wordmark" href="../index.html" data-shatter>NAN / FIELD LOG<i aria-hidden="true"></i></a>
       <nav aria-label="博客导航">
-        <a class="active" href="../index.html">LOG</a>
-        <a href="../about.html">ABOUT</a>
-        <a href="../../journey-archive/">ARCHIVE</a>
+        <a class="active" href="../index.html" data-shatter>LOG</a>
+        <a href="../about.html" data-shatter>ABOUT</a>
+        <a href="../../journey-archive/" data-shatter>ARCHIVE</a>
         <a href="https://github.com/nanbloom001" target="_blank" rel="noreferrer">GITHUB</a>
       </nav>
     </header>
@@ -163,8 +165,8 @@ rewards = {
     <footer class="log-footer">
       <p>NAN / FIELD LOG / 2026</p>
       <p>
-        <a href="../../">MAIN SITE -&gt;</a>
-        <a href="../../journey-archive/">LIFE ARCHIVE -&gt;</a>
+        <a href="../../" data-shatter>MAIN SITE -&gt;</a>
+        <a href="../../journey-archive/" data-shatter>LIFE ARCHIVE -&gt;</a>
       </p>
     </footer>
   </div>

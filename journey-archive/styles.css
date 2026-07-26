@@ -45,11 +45,34 @@ body {
   padding: max(10px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   display: grid;
   place-items: center;
+  place-content: center;
+  gap: 0;
   background: var(--bg);
   color: var(--ink);
   font-family: Arial, "PingFang SC", sans-serif;
   transition: background-color 250ms, color 250ms;
 }
+
+#archive-sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; contain: strict; }
+
+.archive-telemetry {
+  position: relative;
+  z-index: 1;
+  width: min(1120px, 96vw);
+  margin: 0 auto 24px;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  color: var(--muted);
+  font: 700 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .12em;
+}
+.archive-telemetry > span { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.archive-telemetry .tele-link { margin-left: auto; color: var(--accent); }
+.archive-telemetry .tele-square { width: 4px; height: 4px; background: var(--pixel-complete); }
+.archive-telemetry .tele-dot { width: 4px; height: 4px; background: var(--accent); animation: dot-blink 900ms steps(1) infinite; }
 
 .archive {
   position: relative;

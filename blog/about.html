@@ -18,7 +18,9 @@
   <title>About | Field Log</title>
   <link rel="stylesheet" href="styles.css">
   <script defer src="../assets/dot-font.js"></script>
+  <script defer src="../assets/starfield.js"></script>
   <script defer src="blog.js"></script>
+  <script defer src="tetris.js"></script>
 </head>
 <body>
   <canvas id="drift-field" aria-hidden="true"></canvas>
@@ -30,11 +32,11 @@
 
   <div class="frame">
     <header class="log-header">
-      <a class="wordmark" href="index.html">NAN / FIELD LOG<i aria-hidden="true"></i></a>
+      <a class="wordmark" href="index.html" data-shatter>NAN / FIELD LOG<i aria-hidden="true"></i></a>
       <nav aria-label="博客导航">
-        <a href="index.html">LOG</a>
-        <a class="active" href="about.html">ABOUT</a>
-        <a href="../journey-archive/">ARCHIVE</a>
+        <a href="index.html" data-shatter>LOG</a>
+        <a class="active" href="about.html" data-shatter>ABOUT</a>
+        <a href="../journey-archive/" data-shatter>ARCHIVE</a>
         <a href="https://github.com/nanbloom001" target="_blank" rel="noreferrer">GITHUB</a>
       </nav>
     </header>
@@ -82,12 +84,13 @@
           <p>
             日志会持续更新，主题围绕强化学习、四足机器人、Sim2Real，
             以及 AI 原生的开发方式。更完整的经历在
-            <a href="../journey-archive/">人生档案</a>里，
+            <a href="../journey-archive/" data-shatter>人生档案</a>里，
             项目代码都在 <a href="https://github.com/nanbloom001" target="_blank" rel="noreferrer">GitHub</a>。
             技术交流欢迎写信：<a href="mailto:nanbloom001@gmail.com">nanbloom001@gmail.com</a>。
           </p>
 
-          <h2><span class="h-index">SPEC</span>这个站点本身</h2>
+          <h2 class="visually-hidden">这个站点本身</h2>
+          <div class="section-label"><span>SPEC // 这个站点本身</span><span>ZERO DEPS</span></div>
           <p>
             整站零依赖：没有框架、没有构建工具、没有第三方请求。
             点阵标题由自研的 7×9 方块字体在 canvas 上逐格点亮，
@@ -125,8 +128,8 @@
     <footer class="log-footer">
       <p>NAN / FIELD LOG / 2026</p>
       <p>
-        <a href="../">MAIN SITE -&gt;</a>
-        <a href="../journey-archive/">LIFE ARCHIVE -&gt;</a>
+        <a href="../" data-shatter>MAIN SITE -&gt;</a>
+        <a href="../journey-archive/" data-shatter>LIFE ARCHIVE -&gt;</a>
       </p>
     </footer>
   </div>

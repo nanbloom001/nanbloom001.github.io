@@ -18,6 +18,7 @@
   <title>Field Log | nanbloom001</title>
   <link rel="stylesheet" href="styles.css">
   <script defer src="../assets/dot-font.js"></script>
+  <script defer src="../assets/starfield.js"></script>
   <script defer src="blog.js"></script>
 </head>
 <body>
@@ -30,11 +31,11 @@
 
   <div class="frame">
     <header class="log-header">
-      <a class="wordmark" href="index.html">NAN / FIELD LOG<i aria-hidden="true"></i></a>
+      <a class="wordmark" href="index.html" data-shatter>NAN / FIELD LOG<i aria-hidden="true"></i></a>
       <nav aria-label="博客导航">
-        <a class="active" href="index.html">LOG</a>
-        <a href="about.html">ABOUT</a>
-        <a href="../journey-archive/">ARCHIVE</a>
+        <a class="active" href="index.html" data-shatter>LOG</a>
+        <a href="about.html" data-shatter>ABOUT</a>
+        <a href="../journey-archive/" data-shatter>ARCHIVE</a>
         <a href="https://github.com/nanbloom001" target="_blank" rel="noreferrer">GITHUB</a>
       </nav>
     </header>
@@ -46,6 +47,7 @@
         <div class="banner-stage opening-title">
           <canvas data-pixel-banner data-text="FIELD LOG" data-accent="LOG" data-pitch="10" data-cell-size="10" aria-hidden="true"></canvas>
         </div>
+        <p class="opening-tag">to the moon <span class="dim">·</span> rainy day <span class="dim">·</span> game play</p>
         <div class="opening-hint" aria-hidden="true">
           <span class="hint-drip"><i></i><i></i><i></i></span>
           <span>SCROLL TO ENTER</span>
@@ -56,6 +58,7 @@
         <span class="sparkle" style="--x: 68%; --y: 14%; --d: 300ms" aria-hidden="true"></span>
         <span class="sparkle accent" style="--x: 88%; --y: 30%; --d: 1100ms" aria-hidden="true"></span>
         <span class="sparkle" style="--x: 95%; --y: 66%; --d: 1900ms" aria-hidden="true"></span>
+        <p class="bootline" data-bootline="> SYSTEM ONLINE :: 03 LOGS ON RECORD" aria-hidden="true"></p>
         <p class="eyebrow">
           <span>PERSONAL FIELD LOG</span>
           <span class="eyebrow-separator">//</span>
@@ -63,6 +66,10 @@
           <span class="system-state"><i aria-hidden="true"></i>REC</span>
         </p>
         <span class="title-rule" aria-hidden="true"></span>
+        <p class="hero-poem">
+          雨夜里，<em>月亮很慢</em>。<br>
+          方块一行一行地落，日子一条一条地记。
+        </p>
         <p class="hero-note">
           记录机器人、强化学习与 AI 原生开发路上的实验、踩坑与验证。
           写下来的是日志，留下来的是证据。<span class="type-cursor" aria-hidden="true"></span>
@@ -163,8 +170,8 @@
     <footer class="log-footer">
       <p>NAN / FIELD LOG / 2026</p>
       <p>
-        <a href="../">MAIN SITE -&gt;</a>
-        <a href="../journey-archive/">LIFE ARCHIVE -&gt;</a>
+        <a href="../" data-shatter>MAIN SITE -&gt;</a>
+        <a href="../journey-archive/" data-shatter>LIFE ARCHIVE -&gt;</a>
         <a href="feed.xml">RSS -&gt;</a>
       </p>
     </footer>
